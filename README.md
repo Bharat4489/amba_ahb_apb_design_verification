@@ -49,6 +49,7 @@ Assertions for protocol timing (HREADY, HRESP rules)
 Directed tests for SPLIT/RETRY/ERROR and arbitration corner cases
 
 ## 📂 Repository Structure
+```
 ahb_apb_design_verification/
 ├── rtl/
 │   ├── ahb/
@@ -83,14 +84,11 @@ ahb_apb_design_verification/
 └── docs/
     ├── block_diagrams/
     └── verification_plan.md
-
+```
 
 ## 📘 References
 
-ARM AMBA AHB/ASB/APB Specifications
-
-ARM AMBA AXI4 Specification (for future extension)
-
-UVM User Guide
-
-Doulos / Verification Academy resources
+- ARM AMBA AHB/ASB/APB Specifications
+- ARM AMBA AXI4 Specification (for future extension)
+- UVM User Guide
+- Doulos / Verification Academy resources
