@@ -1,6 +1,12 @@
 # amba_ahb_apb_design_verification
 ## Design and Verification of a Multi-Master AMBA AHB Subsystem with AHB-to-APB Bridge
 
+![Language](https://img.shields.io/badge/language-SystemVerilog-yellow)
+![License](https://img.shields.io/badge/license-MIT-blue)
+![Status](https://img.shields.io/badge/build-in_progress-orange)
+![UVM](https://img.shields.io/badge/UVM-1.2-green)
+
+
 This project implements a complete AMBA system bus architecture, including a multi-master AHB subsystem, an AHB-to-APB bridge, and a set of APB peripherals. It features full synthesizable RTL, protocol-accurate behavior and a UVM testbench with constrained-random tests, coverage, assertions, and A scoreboard for end-to-end functional verification.
 
 ## 📌 Project Overview
