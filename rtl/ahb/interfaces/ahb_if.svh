@@ -44,4 +44,90 @@ interface ahb_if;
     logic                          HMASTLOCK;      // Arbiter: locked sequence indication
     logic [NO_OF_MASTERS-1:0]      HSPLIT;          // Slave : split completion per master
 
+
+    // -------------------------------------------------
+    // modport- master_mp, slave_mp, arbiter_mp, monitor_mp, 
+    // -------------------------------------------------
+    // -------------------------------------------------
+    // Master modport (used by UVM master driver)
+    // -------------------------------------------------
+    modport master_mp (
+        input   HCLK,
+                HRESETn,
+                HRDATA,
+                HREADY,
+                HRESP,
+                HGRANT,
+                HMASTLOCK,
+
+        output  HADDR,
+                HTRANS,
+                HWRITE,
+                HSIZE,
+                HBURST,
+                HPROT,
+                HWDATA,
+                HBUSREQ,
+                HLOCK
+    );
+
+
+    modport slave_mp (
+        input   HCLK,
+                HRESETn,
+                HADDR,
+                HTRANS,
+                HWRITE,
+                HSIZE,
+                HBURST,
+                HPROT,
+                HWDATA,
+                HSEL,
+                HMASTER,
+                HMASTLOCK,
+
+        output  HRDATA,
+                HREADY,
+                HRESP,
+                HSPLIT
+    );
+
+
+    modport arbiter_mp (
+        input   HCLK,
+                HRESETn,
+                HBUSREQ,
+                HLOCK,
+                HSPLIT,
+
+        output  HGRANT,
+                HMASTER,
+                HMASTLOCK
+    );
+
+
+    modport monitor_mp (
+        input   HCLK,
+                HRESETn,
+                HADDR,
+                HTRANS,
+                HWRITE,
+                HSIZE,
+                HBURST,
+                HPROT,
+                HWDATA,
+                HRDATA,
+                HREADY,
+                HRESP,
+                HSEL,
+                HBUSREQ,
+                HLOCK,
+                HGRANT,
+                HMASTER,
+                HMASTLOCK,
+                HSPLIT
+    );
+
+
+
 endinterface : ahb_if
