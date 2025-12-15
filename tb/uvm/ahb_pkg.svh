@@ -2,6 +2,8 @@ package ahb_pkg
     `include "uvm_macros.svh"
     import uvm_pkg::*;  
 
+    `include "tb/uvm/drivers/ahb_master_driver.svh"
+    
     class my_test extends uvm_test;
         `uvm_component_utils(my_test);
         
