@@ -4,9 +4,9 @@ package ahb_pkg;
 
     `include "tb/uvm/drivers/ahb_master_driver.svh"
     `include "tb/uvm/sequencer/ahb_master_sequencer.sv"
+    `include "tb/uvm/monitors/ahb_master_monitor.svh"
     `include "tb/uvm/agents/ahb_master_agent.svh"
-
-
+    
     class my_test extends uvm_test;
         `uvm_component_utils(my_test);
         

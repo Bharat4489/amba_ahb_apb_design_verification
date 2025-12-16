@@ -3,6 +3,7 @@ class ahb_master_agent extends uvm_agent;
 
     ahb_master_sequencer m_ahb_sequencer;
     ahb_master_driver m_ahb_driver;
+    ahb_master_monitor m_ahb_monitor;
 
     function new(string name = "ahb_master_agent", uvm_component parent);
         super.new(name, parent);
@@ -16,6 +17,9 @@ endclass : ahb_master_agent
 
 function void ahb_master_agent::build_phase(uvm_phase phase);
     super.build_phase(phase);
+
+    m_ahb_monitor = ahb_master_monitor::type_id::create("m_ahb_monitor", this); //monitor is always created irrespection of is_active
+
     if (is_active==UVM_ACTIVE) begin
         m_ahb_sequencer = ahb_master_sequencer::type_id::create("m_ahb_sequencer", this);
         m_ahb_driver = ahb_master_driver::type_id::create("m_ahb_driver", this);    
