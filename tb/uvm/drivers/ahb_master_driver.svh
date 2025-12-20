@@ -21,19 +21,23 @@ function void ahb_master_driver::build_phase(uvm_phase phase);
 endfunction
 
 task ahb_master_driver::run_phase(uvm_phase phase);
-  ahb_seq_item req;
+    ahb_seq_item req;
 
-  forever begin
-    seq_item_port.get_next_item(req);
-    //DEBUG PRINT
-    `uvm_info("DRIVER", $sformatf("Driving HADDR=%h HWRITE=%0d HTRANS=%0d", req.HADDR, req.HWRITE, req.HTRANS),UVM_LOW)
-    @(posedge dut_vif.HCLK);
-    dut_vif.HADDR  <= req.HADDR;
-    dut_vif.HWRITE <= req.HWRITE;
-    dut_vif.HTRANS <= req.HTRANS;
-    repeat (2) @(posedge dut_vif.HCLK);
-    seq_item_port.item_done();
-  end
+    `uvm_info("DRIVER", "Entered run_phase", UVM_LOW)
+
+    forever begin
+        `uvm_info("DRIVER", "Waiting for item", UVM_LOW)
+        seq_item_port.get_next_item(req);
+
+        `uvm_info("DRIVER",
+            $sformatf("Got item addr=%0h write=%0b", req.HADDR, req.HWRITE),
+            UVM_LOW)
+
+        // drive signals here
+
+        seq_item_port.item_done();
+        `uvm_info("DRIVER", "Item done", UVM_LOW)
+    end
 endtask: run_phase
 
 
