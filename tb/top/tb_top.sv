@@ -16,6 +16,8 @@ module tb_top ();
       initial begin
         // Place the interface into the UVM configuration database
         uvm_config_db#(virtual ahb_if.master_mp)::set(null, "*", "ahb_vif", ahb_if1.master_mp);
+        uvm_config_db#(virtual ahb_if.slave_mp)::set(null, "*", "ahb_vif", ahb_if1.slave_mp);
+        uvm_config_db#(virtual ahb_if.monitor_mp)::set(null, "*", "ahb_vif", ahb_if1.monitor_mp);
         // Start the test
         run_test("my_test");      //It is a UVM library task defined in uvm_pkg- IT FINDS my_test via `uvm_component_utils(my_test)
       end
