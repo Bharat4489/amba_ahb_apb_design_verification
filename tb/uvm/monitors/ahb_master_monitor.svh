@@ -38,7 +38,7 @@ endfunction //ahb_master_monitor::build_phase
   // ------------------------------------------------------------------
 task ahb_master_monitor::run_phase(uvm_phase phase);
     ahb_seq_item txn;
-
+    `uvm_info("MON", "Monitor run_phase entered", UVM_LOW)
     // Monitor runs forever, passively sampling the bus every cycle
     forever begin
       @(posedge dut_vif.HCLK);
@@ -54,7 +54,9 @@ task ahb_master_monitor::run_phase(uvm_phase phase);
         txn.HTRANS = dut_vif.HTRANS;
         // Publish the transaction to the analysis network, ap.write() does NOT call write() directly;
         // UVM routes this transaction to all connected analysis_imps (e.g., scoreboard, coverage, reference models)
+        `uvm_info("MON", "Observed valid transfer", UVM_LOW)
         ap.write(txn);
+        `uvm_info("MON", "Transaction sent to scoreboard", UVM_LOW)
       end
     end
 endtask
