@@ -1,5 +1,3 @@
-//UNCHECKED
-
 class ahb_seq_item extends ahb_base_seq_item;       //adding constraints on seq items
     `uvm_object_utils(ahb_seq_item)
 
