@@ -18,18 +18,43 @@ class ahb_master_monitor extends uvm_monitor;
 
 endclass : ahb_master_monitor
 
+  // ------------------------------------------------------------------
+  // build_phase
+  // ------------------------------------------------------------------
 function void ahb_master_monitor::build_phase(uvm_phase phase);
     super.build_phase(phase);
     ap = new("ap", this);                   
     /*
-    it is not part of the UVM component hierarchy and does not participate in phases, 
-    so it is created as a regular object(but created in build phase to keep UVM construction clean and predictable
+    TLM ports not part of the UVM component hierarchy and does not participate in phases, 
+    so TLM ports created as a regular object(but created in build phase to keep UVM construction clean and predictable
     */
     if (!uvm_config_db#(virtual ahb_if.monitor_mp)::get(this, "", "ahb_vif", dut_vif)) begin
-        `uvm_fatal("NOVIF","unable to get virtual intf from uvm_config_d")
+        `uvm_fatal("MONITOR:NOVIF","unable to get VIF from uvm_config_db")
     end
 endfunction //ahb_master_monitor::build_phase
 
+  // ------------------------------------------------------------------
+  // run_phase
+  // ------------------------------------------------------------------
 task ahb_master_monitor::run_phase(uvm_phase phase);
-    //ap.write(txn);       // “I am publishing this transaction to whoever is connected.”
-endtask //ahb_master_monitor::run_phase
+    ahb_seq_item txn;
+
+    // Monitor runs forever, passively sampling the bus every cycle
+    forever begin
+      @(posedge dut_vif.HCLK);
+
+      // Only capture transactions when:
+      // 1. Reset is deasserted (bus is active)
+      // 2. HTRANS indicates a NONSEQ transfer (valid address phase)
+      // This avoids collecting spurious or idle bus activity
+      if (dut_vif.HRESETn && dut_vif.HTRANS == 2'b10) begin
+        txn = ahb_seq_item::type_id::create("txn", this); //transaction-level abstraction of pin-level activity
+        txn.HADDR  = dut_vif.HADDR;
+        txn.HWRITE = dut_vif.HWRITE;
+        txn.HTRANS = dut_vif.HTRANS;
+        // Publish the transaction to the analysis network, ap.write() does NOT call write() directly;
+        // UVM routes this transaction to all connected analysis_imps (e.g., scoreboard, coverage, reference models)
+        ap.write(txn);
+      end
+    end
+endtask

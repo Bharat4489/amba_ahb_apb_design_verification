@@ -16,7 +16,7 @@ endclass //ahb_master_driver extends uvm_driver
 function void ahb_master_driver::build_phase(uvm_phase phase);
     super.build_phase(phase);
         if (!uvm_config_db#(virtual ahb_if.master_mp)::get(this, "", "ahb_vif", dut_vif)) begin  //not checking null== dut_vif, as we are getting it here from config database
-            `uvm_fatal("NOVIF","unable to get VIF from uvm_config_db")
+            `uvm_fatal("DRIVER:NOVIF","unable to get VIF from uvm_config_db")
         end  
 endfunction
 
