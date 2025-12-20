@@ -5,30 +5,41 @@ class ahb_master_agent extends uvm_agent;
     ahb_master_driver m_ahb_driver;
     ahb_master_monitor m_ahb_monitor;
 
+    uvm_analysis_port #(ahb_seq_item) ap;       //analysis port declared inside the agent
+
     function new(string name = "ahb_master_agent", uvm_component parent);
         super.new(name, parent);
     endfunction
 
     extern function void build_phase(uvm_phase phase);
     extern function void connect_phase(uvm_phase phase);
+    extern task run_phase(uvm_phase phase);
 
-endclass : ahb_master_agent
+endclass //ahb_master_agent
 
 
 function void ahb_master_agent::build_phase(uvm_phase phase);
     super.build_phase(phase);
 
-    m_ahb_monitor = ahb_master_monitor::type_id::create("m_ahb_monitor", this); //monitor is always created irrespection of is_active
+    m_ahb_monitor = ahb_master_monitor::type_id::create("m_ahb_monitor", this); //monitor is always created irrespectiVE of is_active
 
     if (is_active==UVM_ACTIVE) begin
         m_ahb_sequencer = ahb_master_sequencer::type_id::create("m_ahb_sequencer", this);
         m_ahb_driver = ahb_master_driver::type_id::create("m_ahb_driver", this);    
     end
+
+    ap = new("ap", this);   //create agent analysis port
 endfunction
 
 function void ahb_master_agent::connect_phase(uvm_phase phase);
     super.connect_phase(phase);
+    m_ahb_monitor.ap.connect(ap);
     if (is_active==UVM_ACTIVE) begin
         m_ahb_driver.seq_item_port.connect(m_ahb_sequencer.seq_item_export);
     end
 endfunction
+
+
+task  ahb_master_agent::run_phase(uvm_phase phase);
+    uvm_top.print_topology;         //what does it do?
+endtask //ahb_master_agent::run_phase
