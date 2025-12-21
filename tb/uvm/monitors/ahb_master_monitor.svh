@@ -1,3 +1,4 @@
+`include "rtl/ahb/interfaces/ahb_if.svh"
 class ahb_master_monitor extends uvm_monitor;
     `uvm_component_utils(ahb_master_monitor)
 
@@ -38,25 +39,34 @@ endfunction //ahb_master_monitor::build_phase
   // ------------------------------------------------------------------
 task ahb_master_monitor::run_phase(uvm_phase phase);
     ahb_seq_item txn;
-    `uvm_info("MONITOR", "Monitor run_phase entered", UVM_LOW)
+    `uvm_info("MONITOR", "Monitor run_phase entered", UVM_MEDIUM)
     // Monitor runs forever, passively sampling the bus every cycle
     forever begin
-      @(posedge dut_vif.HCLK);
+      wait(dut_vif.HREADY && (dut_vif.HTRANS=='b10 || dut_vif.HTRANS=='b11))
+          txn.HTRANS = dut_vif.HTRANS;
+          txn.HWRITE = dut_vif.HWRITE;
+          txn.HADDR = dut_vif.HADDR; 
+          txn.HREADY = dut_vif.HREADY;
+          txn.HSIZE = dut_vif.HSIZE;              
+          txn.HBURST = dut_vif.HBURST;          
+          txn.HPROT = dut_vif.HPROT;      
+          txn.HWDATA = dut_vif.HWDATA;         
+          txn.HBUSREQ = dut_vif.HBUSREQ;                                 
+        
+      @(dut_vif.monitor_mp);
 
-      // Only capture transactions when:
-      // 1. Reset is deasserted (bus is active)
-      // 2. HTRANS indicates a NONSEQ transfer (valid address phase)
-      // This avoids collecting spurious or idle bus activity
-      if (dut_vif.HRESETn && dut_vif.HTRANS == 2'b10) begin
-        txn = ahb_seq_item::type_id::create("txn", this); //transaction-level abstraction of pin-level activity
-        txn.HADDR  = dut_vif.HADDR;
-        txn.HWRITE = dut_vif.HWRITE;
-        txn.HTRANS = dut_vif.HTRANS;
+      wait(dut_vif.HREADY && (dut_vif.HTRANS=='b10 || dut_vif.HTRANS=='b11))
+        if(dut_vif.HWRITE)
+          txn.HWDATA = dut_vif.HWDATA;
+        else 
+          txn.HRDATA = dut_vif.HRDATA;
+
+        txn.print();
         // Publish the transaction to the analysis network, ap.write() does NOT call write() directly;
         // UVM routes this transaction to all connected analysis_imps (e.g., scoreboard, coverage, reference models)
-        `uvm_info("MONITOR", "Observed valid transfer", UVM_LOW)
+        `uvm_info("MONITOR", "Observed valid transfer", UVM_MEDIUM)
         ap.write(txn);
-        `uvm_info("MONITOR", "Transaction sent to scoreboard", UVM_LOW)
+        `uvm_info("MONITOR", "Transaction sent to scoreboard", UVM_MEDIUM)
       end
     end
 endtask
