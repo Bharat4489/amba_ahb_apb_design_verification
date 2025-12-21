@@ -113,11 +113,10 @@ interface ahb_if;
     );
 
 
-    clocking monitor_cb @ (posedge HCLK)
-        default input #1step output #1step; // small skew; tune as needed
+    clocking monitor_cb @ (posedge HCLK);
+        default input #1step; // small skew; tune as needed
 
-        input   HCLK,
-                HRESETn,
+        input   HRESETn,
                 HADDR,
                 HTRANS,
                 HWRITE,
