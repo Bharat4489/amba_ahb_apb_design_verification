@@ -1,4 +1,3 @@
-`include "rtl/ahb/interfaces/ahb_if.svh"
 class ahb_master_monitor extends uvm_monitor;
     `uvm_component_utils(ahb_master_monitor)
 
@@ -68,5 +67,4 @@ task ahb_master_monitor::run_phase(uvm_phase phase);
         ap.write(txn);
         `uvm_info("MONITOR", "Transaction sent to scoreboard", UVM_MEDIUM)
       end
-    end
 endtask

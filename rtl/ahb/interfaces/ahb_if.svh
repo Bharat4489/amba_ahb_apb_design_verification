@@ -113,9 +113,9 @@ interface ahb_if;
     );
 
 
-    clocking monitor_cb (
+    clocking monitor_cb @ (posedge HCLK)
         default input #1step output #1step; // small skew; tune as needed
-        
+
         input   HCLK,
                 HRESETn,
                 HADDR,
@@ -134,7 +134,7 @@ interface ahb_if;
                 HGRANT,
                 HMASTER,
                 HMASTLOCK,
-                HSPLIT
+                HSPLIT;
     endclocking
 
         modport monitor_mp (clocking monitor_cb);
