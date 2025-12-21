@@ -28,7 +28,7 @@ task ahb_master_driver::run_phase(uvm_phase phase);
   `uvm_info("DRIVER", "Entered run_phase", UVM_LOW)
 
   // Wait for reset deassertion before doing anything
-  wait (dut_vif.cb.HRESETn === 1'b1);
+  wait (dut_vif.driver_cb.HRESETn === 1'b1);
   `uvm_info("DRIVER", "Reset deasserted; starting bus traffic", UVM_LOW)
 
   forever begin
@@ -40,23 +40,23 @@ task ahb_master_driver::run_phase(uvm_phase phase);
       UVM_LOW)
 
     // ----- ADDRESS PHASE (on next clock edge) -----
-    @(dut_vif.cb);  // posedge HCLK via clocking block
+    @(dut_vif.driver_cb);  // posedge HCLK via clocking block
 
-    dut_vif.cb.HSEL   <= 1'b1;
-    dut_vif.cb.HTRANS <= 2'b10;           // NONSEQ
-    dut_vif.cb.HWRITE <= req.HWRITE;
-    dut_vif.cb.HADDR  <= req.HADDR;
+    dut_vif.driver_cb.HSEL   <= 1'b1;
+    dut_vif.driver_cb.HTRANS <= 2'b10;           // NONSEQ
+    dut_vif.driver_cb.HWRITE <= req.HWRITE;
+    dut_vif.driver_cb.HADDR  <= req.HADDR;
 
     // ----- DATA PHASE HANDSHAKE -----
     // AHB advances when HREADY is high; wait for it
-    do @(dut_vif.cb); while (dut_vif.cb.HREADY !== 1'b1);
+    do @(dut_vif.driver_cb); while (dut_vif.driver_cb.HREADY !== 1'b1);
 
     // (If write, you would also drive HWDATA here in your full interface)
-    // For read, you'd sample HRDATA with dut_vif.cb at data phase end.
+    // For read, you'd sample HRDATA with dut_vif.driver_cb at data phase end.
 
     // ----- COMPLETE THE BEAT -----
-    dut_vif.cb.HSEL   <= 1'b0;
-    dut_vif.cb.HTRANS <= 2'b00;           // IDLE
+    dut_vif.driver_cb.HSEL   <= 1'b0;
+    dut_vif.driver_cb.HTRANS <= 2'b00;           // IDLE
 
     // Return the item to the sequencer
     seq_item_port.item_done();

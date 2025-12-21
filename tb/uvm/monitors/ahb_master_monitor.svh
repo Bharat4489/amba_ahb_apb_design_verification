@@ -41,24 +41,24 @@ task ahb_master_monitor::run_phase(uvm_phase phase);
     `uvm_info("MONITOR", "Monitor run_phase entered", UVM_MEDIUM)
     // Monitor runs forever, passively sampling the bus every cycle
     forever begin
-      wait(dut_vif.cb.HREADY && (dut_vif.cb.HTRANS=='b10 || dut_vif.cb.HTRANS=='b11))
-          txn.HTRANS = dut_vif.cb.HTRANS;
-          txn.HWRITE = dut_vif.cb.HWRITE;
-          txn.HADDR = dut_vif.cb.HADDR; 
-          txn.HREADY = dut_vif.cb.HREADY;
-          txn.HSIZE = dut_vif.cb.HSIZE;              
-          txn.HBURST = dut_vif.cb.HBURST;          
-          txn.HPROT = dut_vif.cb.HPROT;      
-          txn.HWDATA = dut_vif.cb.HWDATA;         
-          txn.HBUSREQ = dut_vif.cb.HBUSREQ;                                 
+      wait(dut_vif.monitor_cb.HREADY && (dut_vif.monitor_cb.HTRANS=='b10 || dut_vif.monitor_cb.HTRANS=='b11))
+          txn.HTRANS = dut_vif.monitor_cb.HTRANS;
+          txn.HWRITE = dut_vif.monitor_cb.HWRITE;
+          txn.HADDR = dut_vif.monitor_cb.HADDR; 
+          txn.HREADY = dut_vif.monitor_cb.HREADY;
+          txn.HSIZE = dut_vif.monitor_cb.HSIZE;              
+          txn.HBURST = dut_vif.monitor_cb.HBURST;          
+          txn.HPROT = dut_vif.monitor_cb.HPROT;      
+          txn.HWDATA = dut_vif.monitor_cb.HWDATA;         
+          txn.HBUSREQ = dut_vif.monitor_cb.HBUSREQ;                                 
         
-      @(dut_vif.cb.monitor_mp);
+      @(dut_vif.monitor_cb)
 
-      wait(dut_vif.cb.HREADY && (dut_vif.cb.HTRANS=='b10 || dut_vif.cb.HTRANS=='b11))
-        if(dut_vif.cb.HWRITE)
-          txn.HWDATA = dut_vif.cb.HWDATA;
+      wait(dut_vif.monitor_cb.HREADY && (dut_vif.monitor_cb.HTRANS=='b10 || dut_vif.monitor_cb.HTRANS=='b11))
+        if(dut_vif.monitor_cb.HWRITE)
+          txn.HWDATA = dut_vif.monitor_cb.HWDATA;
         else 
-          txn.HRDATA = dut_vif.cb.HRDATA;
+          txn.HRDATA = dut_vif.monitor_cb.HRDATA;
 
         txn.print();
         // Publish the transaction to the analysis network, ap.write() does NOT call write() directly;
@@ -66,5 +66,5 @@ task ahb_master_monitor::run_phase(uvm_phase phase);
         `uvm_info("MONITOR", "Observed valid transfer", UVM_MEDIUM)
         ap.write(txn);
         `uvm_info("MONITOR", "Transaction sent to scoreboard", UVM_MEDIUM)
-      end
+    end
 endtask

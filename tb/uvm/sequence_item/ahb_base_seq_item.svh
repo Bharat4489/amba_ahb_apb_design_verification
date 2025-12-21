@@ -15,6 +15,7 @@ class ahb_base_seq_item extends uvm_sequence_item;          //adding seq items
     rand logic [DATA_WIDTH-1:0] HWDATA;
     rand logic [DATA_WIDTH-1:0] HRDATA;
     rand logic [ADDR_WIDTH-1:0] HADDR;
+    rand logic HREADY;
     logic [3:0] HPROT;
     logic [NO_OF_MASTERS-1:0] HBUSREQ;
 

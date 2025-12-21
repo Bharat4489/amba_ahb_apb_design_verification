@@ -35,4 +35,11 @@ module tb_top ();
         $shm_probe("AS", tb_top);  //"AS" = record EVERYTHING under this scope
       end
 
+
+      initial begin
+        #500ns;  // Wait for 100 ns of simulation time
+        $display("[%0t] Simulation timeout reached. Finishing...", $time);
+        $finish; // Ends simulation cleanly
+      end
+
 endmodule
