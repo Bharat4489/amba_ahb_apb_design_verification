@@ -11,6 +11,7 @@ class ahb_master_driver extends uvm_driver #(ahb_seq_item);
 
     extern function void build_phase(uvm_phase phase);
     extern task run_phase (uvm_phase phase);
+    extern task send_to_dut (ahb_seq_item req);
 endclass //ahb_master_driver extends uvm_driver
 
 function void ahb_master_driver::build_phase(uvm_phase phase);
@@ -24,7 +25,6 @@ endfunction
 task ahb_master_driver::run_phase(uvm_phase phase);
   ahb_seq_item req;
 
-  phase.raise_objection(this);
   `uvm_info("DRIVER", "Entered run_phase", UVM_LOW)
 
   // Wait for reset deassertion before doing anything
@@ -34,35 +34,22 @@ task ahb_master_driver::run_phase(uvm_phase phase);
   forever begin
     `uvm_info("DRIVER", "Waiting for item", UVM_LOW)
     seq_item_port.get_next_item(req);
-
-    `uvm_info("DRIVER",
-      $sformatf("Got item addr=%0h write=%0b", req.HADDR, req.HWRITE),
-      UVM_LOW)
-
-    // ----- ADDRESS PHASE (on next clock edge) -----
-    @(dut_vif.driver_cb);  // posedge HCLK via clocking block
-
-    dut_vif.driver_cb.HSEL   <= 1'b1;
-    dut_vif.driver_cb.HTRANS <= 2'b10;           // NONSEQ
-    dut_vif.driver_cb.HWRITE <= req.HWRITE;
-    dut_vif.driver_cb.HADDR  <= req.HADDR;
-
-    // ----- DATA PHASE HANDSHAKE -----
-    // AHB advances when HREADY is high; wait for it
-    do @(dut_vif.driver_cb); while (dut_vif.driver_cb.HREADY !== 1'b1);
-
-    // (If write, you would also drive HWDATA here in your full interface)
-    // For read, you'd sample HRDATA with dut_vif.driver_cb at data phase end.
-
-    // ----- COMPLETE THE BEAT -----
-    dut_vif.driver_cb.HSEL   <= 1'b0;
-    dut_vif.driver_cb.HTRANS <= 2'b00;           // IDLE
-
-    // Return the item to the sequencer
+    `uvm_info("DRIVER", req.sprint(), UVM_LOW)
+    send_to_dut(req);
     seq_item_port.item_done();
-
     `uvm_info("DRIVER", "Item done", UVM_LOW)
   end
-
-  phase.drop_objection(this);
 endtask
+
+task ahb_master_driver::send_to_dut(ahb_seq_item req);
+  //drive addr and control info
+    @(dut_vif.driver_cb);
+        dut_vif.driver_cb.HWRITE  <= req.HWRITE;
+        dut_vif.driver_cb.HTRANS  <= 2'b10; //NONSEQ
+        dut_vif.driver_cb.HSIZE   <= req.HSIZE;
+        dut_vif.driver_cb.HADDR   <= req.HADDR;
+        // dut_vif.driver_cb.HREADY  <= req.HREADY; //HREADY is send by slave
+
+    @(dut_vif.driver_cb); // One-cycle transfer assumption (no wait states yet)   -AFTER ADDING SLAVE WE WILL USE HREADY to deassert HTRANS
+        dut_vif.driver_cb.HTRANS <= 2'b00;  // Return bus to IDLE 
+endtask /send_to_dut
