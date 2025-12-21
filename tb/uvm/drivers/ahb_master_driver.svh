@@ -48,8 +48,14 @@ task ahb_master_driver::send_to_dut(ahb_seq_item req);
         dut_vif.driver_cb.HTRANS  <= 2'b10; //NONSEQ
         dut_vif.driver_cb.HSIZE   <= req.HSIZE;
         dut_vif.driver_cb.HADDR   <= req.HADDR;
-        // dut_vif.driver_cb.HREADY  <= req.HREADY; //HREADY is send by slave
+
+        // Wait until the slave completes the transfer
+        do @(dut_vif.driver_cb);     // One-cycle transfer assumption (no wait states yet)   -AFTER ADDING SLAVE WE WILL USE HREADY to deassert HTRANS
+        while (dut_vif.driver_cb.HREADY == 0);
+
+        // Now it is legal to move to IDLE / next transfer
+        dut_vif.driver_cb.HTRANS <= 2'b00;  // Return bus to IDLE
 
     @(dut_vif.driver_cb); // One-cycle transfer assumption (no wait states yet)   -AFTER ADDING SLAVE WE WILL USE HREADY to deassert HTRANS
         dut_vif.driver_cb.HTRANS <= 2'b00;  // Return bus to IDLE 
-endtask /send_to_dut
+endtask   //send_to_dut
