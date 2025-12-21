@@ -52,7 +52,7 @@ interface ahb_if;
     // Master modport (used by UVM master driver)
     // -------------------------------------------------
 
-        clocking cb @ (posedge HCLK);
+        clocking master_cb @ (posedge HCLK);
                 default input #1step output #1step; // small skew; tune as needed
 
                 // outputs (driven by master)
@@ -76,7 +76,7 @@ interface ahb_if;
                         HMASTLOCK;
         endclocking
 
-    modport master_mp (clocking cb);
+    modport master_mp (clocking master_cb);
 
 
     modport slave_mp (
@@ -113,7 +113,9 @@ interface ahb_if;
     );
 
 
-    modport monitor_mp (
+    clocking monitor_cb (
+        default input #1step output #1step; // small skew; tune as needed
+        
         input   HCLK,
                 HRESETn,
                 HADDR,
@@ -133,8 +135,8 @@ interface ahb_if;
                 HMASTER,
                 HMASTLOCK,
                 HSPLIT
-    );
+    endclocking
 
-
+        modport monitor_mp (clocking monitor_cb);
 
 endinterface : ahb_if

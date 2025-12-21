@@ -42,24 +42,24 @@ task ahb_master_monitor::run_phase(uvm_phase phase);
     `uvm_info("MONITOR", "Monitor run_phase entered", UVM_MEDIUM)
     // Monitor runs forever, passively sampling the bus every cycle
     forever begin
-      wait(dut_vif.HREADY && (dut_vif.HTRANS=='b10 || dut_vif.HTRANS=='b11))
-          txn.HTRANS = dut_vif.HTRANS;
-          txn.HWRITE = dut_vif.HWRITE;
-          txn.HADDR = dut_vif.HADDR; 
-          txn.HREADY = dut_vif.HREADY;
-          txn.HSIZE = dut_vif.HSIZE;              
-          txn.HBURST = dut_vif.HBURST;          
-          txn.HPROT = dut_vif.HPROT;      
-          txn.HWDATA = dut_vif.HWDATA;         
-          txn.HBUSREQ = dut_vif.HBUSREQ;                                 
+      wait(dut_vif.cb.HREADY && (dut_vif.cb.HTRANS=='b10 || dut_vif.cb.HTRANS=='b11))
+          txn.HTRANS = dut_vif.cb.HTRANS;
+          txn.HWRITE = dut_vif.cb.HWRITE;
+          txn.HADDR = dut_vif.cb.HADDR; 
+          txn.HREADY = dut_vif.cb.HREADY;
+          txn.HSIZE = dut_vif.cb.HSIZE;              
+          txn.HBURST = dut_vif.cb.HBURST;          
+          txn.HPROT = dut_vif.cb.HPROT;      
+          txn.HWDATA = dut_vif.cb.HWDATA;         
+          txn.HBUSREQ = dut_vif.cb.HBUSREQ;                                 
         
-      @(dut_vif.monitor_mp);
+      @(dut_vif.cb.monitor_mp);
 
-      wait(dut_vif.HREADY && (dut_vif.HTRANS=='b10 || dut_vif.HTRANS=='b11))
-        if(dut_vif.HWRITE)
-          txn.HWDATA = dut_vif.HWDATA;
+      wait(dut_vif.cb.HREADY && (dut_vif.cb.HTRANS=='b10 || dut_vif.cb.HTRANS=='b11))
+        if(dut_vif.cb.HWRITE)
+          txn.HWDATA = dut_vif.cb.HWDATA;
         else 
-          txn.HRDATA = dut_vif.HRDATA;
+          txn.HRDATA = dut_vif.cb.HRDATA;
 
         txn.print();
         // Publish the transaction to the analysis network, ap.write() does NOT call write() directly;
