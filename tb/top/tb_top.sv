@@ -6,7 +6,7 @@ module tb_top ();
     import ahb_pkg::*;
     ahb_if ahb_if1();       //instantiate real interface-use parantheses'()' w/o it, we will get compilation error as compiler look for port list 
     
-    ahb_default_slave u_default_slave(.real_if(ahb_if));    //instantiated and connected default slave
+    ahb_default_slave u_default_slave(.real_if(ahb_if1.slave_mp));    //instantiated and connected default slave
       // Clock generator: 100 MHz example (10 ns period)
       initial begin
         ahb_if1.HCLK = 0;

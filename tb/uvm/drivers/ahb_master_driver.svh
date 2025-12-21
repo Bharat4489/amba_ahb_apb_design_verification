@@ -45,9 +45,10 @@ task ahb_master_driver::send_to_dut(ahb_seq_item req);
   //drive addr and control info
     @(dut_vif.driver_cb);
         dut_vif.driver_cb.HWRITE  <= req.HWRITE;
-        dut_vif.driver_cb.HTRANS  <= 2'b10; //NONSEQ
+        dut_vif.driver_cb.HTRANS  <= req.HTRANS; //NONSEQ
         dut_vif.driver_cb.HSIZE   <= req.HSIZE;
         dut_vif.driver_cb.HADDR   <= req.HADDR;
+        dut_vif.driver_cb.HSEL    <= req.HSEL;
 
         // Wait until the slave completes the transfer
         do @(dut_vif.driver_cb);     // One-cycle transfer assumption (no wait states yet)   -AFTER ADDING SLAVE WE WILL USE HREADY to deassert HTRANS

@@ -15,7 +15,7 @@ class ahb_master_agent extends uvm_agent;
     extern function void connect_phase(uvm_phase phase);
     extern task run_phase(uvm_phase phase);
 
-endclass //ahb_master_agent
+endclass : ahb_master_agent
 
 
 function void ahb_master_agent::build_phase(uvm_phase phase);
@@ -27,8 +27,6 @@ function void ahb_master_agent::build_phase(uvm_phase phase);
         m_ahb_sequencer = ahb_master_sequencer::type_id::create("m_ahb_sequencer", this);
         m_ahb_driver = ahb_master_driver::type_id::create("m_ahb_driver", this);    
     end
-
-    ap = new("ap", this);   //create agent analysis port
 endfunction
 
 function void ahb_master_agent::connect_phase(uvm_phase phase);
@@ -42,4 +40,4 @@ endfunction
 
 task  ahb_master_agent::run_phase(uvm_phase phase);
     uvm_top.print_topology;         //what does it do?
-endtask //ahb_master_agent::run_phase
+endtask ahb_master_agent::run_phase

@@ -2,6 +2,7 @@
 // AHB Interface using ahb_params_pkg
 // -------------------------------------------------
 
+`timescale 1ns/1ps
 
 interface ahb_if;
     import ahb_params_pkg::*;

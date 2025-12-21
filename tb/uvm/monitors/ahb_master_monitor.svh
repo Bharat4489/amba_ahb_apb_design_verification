@@ -36,35 +36,52 @@ endfunction //ahb_master_monitor::build_phase
   // ------------------------------------------------------------------
   // run_phase
   // ------------------------------------------------------------------
+
 task ahb_master_monitor::run_phase(uvm_phase phase);
-    ahb_seq_item txn;
-    `uvm_info("MONITOR", "Monitor run_phase entered", UVM_MEDIUM)
-    // Monitor runs forever, passively sampling the bus every cycle
-    forever begin
-      wait(dut_vif.monitor_cb.HREADY && (dut_vif.monitor_cb.HTRANS=='b10 || dut_vif.monitor_cb.HTRANS=='b11))
-          txn.HTRANS = dut_vif.monitor_cb.HTRANS;
-          txn.HWRITE = dut_vif.monitor_cb.HWRITE;
-          txn.HADDR = dut_vif.monitor_cb.HADDR; 
-          txn.HREADY = dut_vif.monitor_cb.HREADY;
-          txn.HSIZE = dut_vif.monitor_cb.HSIZE;              
-          txn.HBURST = dut_vif.monitor_cb.HBURST;          
-          txn.HPROT = dut_vif.monitor_cb.HPROT;      
-          txn.HWDATA = dut_vif.monitor_cb.HWDATA;         
-          txn.HBUSREQ = dut_vif.monitor_cb.HBUSREQ;                                 
-        
-      @(dut_vif.monitor_cb)
+  `uvm_info("MONITOR", "Monitor run_phase entered", UVM_MEDIUM)
 
-      wait(dut_vif.monitor_cb.HREADY && (dut_vif.monitor_cb.HTRANS=='b10 || dut_vif.monitor_cb.HTRANS=='b11))
-        if(dut_vif.monitor_cb.HWRITE)
-          txn.HWDATA = dut_vif.monitor_cb.HWDATA;
-        else 
-          txn.HRDATA = dut_vif.monitor_cb.HRDATA;
+  // Guard against missing virtual interface
+  if (dut_vif == null)
+    `uvm_fatal("MONITOR:NOVIF", "monitor VIF is null; check config_db set/get keys")
 
-        txn.print();
-        // Publish the transaction to the analysis network, ap.write() does NOT call write() directly;
-        // UVM routes this transaction to all connected analysis_imps (e.g., scoreboard, coverage, reference models)
-        `uvm_info("MONITOR", "Observed valid transfer", UVM_MEDIUM)
-        ap.write(txn);
-        `uvm_info("MONITOR", "Transaction sent to scoreboard", UVM_MEDIUM)
+  forever begin
+    @(dut_vif.monitor_cb);   //    This avoids races compared to using 'wait(...)' alone.
+    // 2) Address/Control phase detect:
+    //    Valid transfer when HREADY==1 and HTRANS is NONSEQ(2'b10) or SEQ(2'b11).
+    if (dut_vif.monitor_cb.HREADY &&
+        (dut_vif.monitor_cb.HTRANS inside {2'b10, 2'b11})) begin
+
+      // Create a fresh transaction object BEFORE assigning fields (avoid TRNULLID).
+      ahb_seq_item txn = ahb_seq_item::type_id::create("txn", this);
+
+      // Sample address/control on the address-phase edge.
+      txn.HTRANS   = dut_vif.monitor_cb.HTRANS;
+      txn.HWRITE   = dut_vif.monitor_cb.HWRITE;
+      txn.HADDR    = dut_vif.monitor_cb.HADDR;
+      txn.HSIZE    = dut_vif.monitor_cb.HSIZE;
+      txn.HBURST   = dut_vif.monitor_cb.HBURST;
+      txn.HPROT    = dut_vif.monitor_cb.HPROT;
+      txn.HREADY   = dut_vif.monitor_cb.HREADY;
+      txn.HWDATA   = dut_vif.monitor_cb.HWDATA; 
+      txn.HBUSREQ  = dut_vif.monitor_cb.HBUSREQ; // keep only if you model arbitration
+
+      // 3) Data-phase handshake:
+      //    Respect AHB wait-states—data phase completes when HREADY goes high again.
+      //    Using do..while on the clocking block keeps us edge-aligned.
+      do @(dut_vif.monitor_cb); while (!dut_vif.monitor_cb.HREADY);
+
+      // Sample the data when the data phase completes.
+      if (txn.HWRITE)
+        txn.HWDATA = dut_vif.monitor_cb.HWDATA;
+      else
+        txn.HRDATA = dut_vif.monitor_cb.HRDATA;
+
+      `uvm_info("MONITOR:", txn.sprint(), UVM_LOW)
+
+      // 4) Publish this single beat to the analysis network.
+      ap.write(txn);
+      `uvm_info("MONITOR", "Transaction sent to scoreboard", UVM_MEDIUM)
     end
+    // If condition is not met, loop back on next clock; monitor remains passive.
+  end // forever
 endtask

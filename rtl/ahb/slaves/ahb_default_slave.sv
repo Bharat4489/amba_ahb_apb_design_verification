@@ -1,7 +1,7 @@
 import ahb_params_pkg::*;
 
 module ahb_default_slave (
-    ahb_if.slave_mp real_if
+    ahb_if.slave_mp real_if     //connected to (.real_if(ahb_if.slave_mp));
 );
 
     // ------------------------------------------------------------

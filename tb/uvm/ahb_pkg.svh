@@ -1,6 +1,9 @@
+`timescale 1ns/1ps
+
 package ahb_pkg;
     `include "uvm_macros.svh"
-    import uvm_pkg::*;  
+    import uvm_pkg::*; 
+    import ahb_params_pkg::*;
 
     `include "tb/uvm/sequence_item/ahb_base_seq_item.svh"
     `include "tb/uvm/sequence_item/ahb_seq_item.svh"
@@ -28,17 +31,18 @@ package ahb_pkg;
 
         task run_phase(uvm_phase phase);
             ahb_base_sequence seq;
-
+            `uvm_info("MY_TEST", "RAISING OBJECTION", UVM_LOW)
             phase.raise_objection(this);
 
             seq = ahb_base_sequence::type_id::create("seq");
+            `uvm_info("MY_TEST", "STARTING SEQUENCE", UVM_LOW)
             seq.start(env.m_ahb_agent.m_ahb_sequencer);
 
             #100;
+            `uvm_info("MY_TEST", "DROPPING OBJECTION", UVM_LOW)
             phase.drop_objection(this);
         endtask
     endclass
 
     
 endpackage
-
