@@ -13,7 +13,7 @@ endclass : ahb_base_sequence
 task ahb_base_sequence::body();
   repeat (5) 
   begin
-    req = ahb_seq_item::type_id::create("req", this);
+    req = ahb_seq_item::type_id::create("req");
 
     start_item(req);
 
