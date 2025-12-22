@@ -1,7 +1,10 @@
 import ahb_params_pkg::*;
 
 module ahb_sram_slave (
-    ahb_if.slave_mp sram_if
+    ahb_if.slave_mp sram_if,
+    output logic [DATA_WIDTH-1:0] hrdata_sram,
+    output logic hready_sram,           //transfer done / wait-state control
+    output logic [1:0] hresp_sram      //response (OKAY, ERROR, RETRY, SPLIT)
 );
 
     // ------------------------------------------------------------
@@ -11,10 +14,7 @@ module ahb_sram_slave (
     logic [DATA_WIDTH-1:0] sram_memory [0:2047];
     logic [3:0] byte_en;
 
-    //output signals
-    logic [DATA_WIDTH-1:0] hrdata_sram;
-    logic hready_sram;           //transfer done / wait-state control
-    logic [1:0] hresp_sram;      //response (OKAY, ERROR, RETRY, SPLIT)
+ 
 
     // Word-aligned address (internal SRAM index)
     int unsigned word_addr;
@@ -22,8 +22,8 @@ module ahb_sram_slave (
     // ------------------------------------------------------------
     // Always-ready, fast SRAM slave
     // ------------------------------------------------------------
-    assign sram_if.HREADY = 1'b1;     // No wait states
-    assign sram_if.HRESP  = 2'b00;    // OKAY response always
+    assign hrdata_sram = 1'b1;     // No wait states
+    assign hresp_sram  = 2'b00;    // OKAY response always
 
     // ------------------------------------------------------------
     // Byte enable decode (combinational)

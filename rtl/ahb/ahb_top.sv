@@ -18,17 +18,17 @@ module ahb_top (
     // Default slave
     ahb_default_slave u_default_slave (
         .slave_if     (real_if.slave_mp),
-        .hrdata_out   (hrdata_default),
-        .hready_out   (hready_default),
-        .hresp_out    (hresp_default)
+        .hrdata_default   (hrdata_default),
+        .hready_default   (hready_default),
+        .hresp_default    (hresp_default)
     );
 
     // SRAM slave
     ahb_sram_slave u_sram_slave (
         .slave_if     (real_if.slave_mp),
-        .hrdata_out   (hrdata_sram),
-        .hready_out   (hready_sram),
-        .hresp_out    (hresp_sram)
+        .hrdata_sram   (hrdata_sram),
+        .hready_sram   (hready_sram),
+        .hresp_sram    (hresp_sram)
     );
 
     // -----------------------------
