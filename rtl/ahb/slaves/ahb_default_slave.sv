@@ -4,6 +4,10 @@ module ahb_default_slave (
     ahb_if.slave_mp default_if     //connected to (.default_if(ahb_if.slave_mp));
 );
 
+    //output signals
+    logic [DATA_WIDTH-1:0] hrdata_default;
+    logic hready_default;           //transfer done / wait-state control
+    logic [1:0] hresp_default;      //response (OKAY, ERROR, RETRY, SPLIT)
     // ------------------------------------------------------------
     // Default AHB Slave
     //  - Responds to unmapped addresses
@@ -16,7 +20,7 @@ module ahb_default_slave (
         if (!default_if.HRESETn) begin
             default_if.HREADY <= 1'b1;
             default_if.HRESP  <= 2'b00;   // OKAY during reset (safe default)
-            default_if.HRDATA <= '0;
+            hrdata_default <= '0;
         end
         else begin
             // Default behavior: ready, no wait states
@@ -31,7 +35,7 @@ module ahb_default_slave (
             end
 
             // HRDATA is don't-care for default slave
-            default_if.HRDATA <= '0;
+            hrdata_default <= '0;
         end
     end
 

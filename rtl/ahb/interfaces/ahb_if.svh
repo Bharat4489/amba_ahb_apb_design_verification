@@ -66,7 +66,6 @@ interface ahb_if;
                         HPROT,
                         HWDATA,
                         HBUSREQ,
-                        HSEL,
                         HLOCK;
 
                 // inputs (sampled by master)
@@ -79,50 +78,6 @@ interface ahb_if;
         endclocking
 
     modport master_mp (clocking driver_cb);
-
-
-    modport slave_mp (
-        input   HCLK,
-                HRESETn,
-                HADDR,
-                HTRANS,
-                HWRITE,
-                HSIZE,
-                HBURST,
-                HPROT,
-                HWDATA,
-                HSEL,
-                HMASTER,
-                HMASTLOCK,
-
-        output  HRDATA,
-                HREADY,
-                HRESP,
-                HSPLIT
-    );
-
-
-    modport arbiter_mp (
-        input   HCLK,
-                HRESETn,
-                HBUSREQ,
-                HLOCK,
-                HSPLIT,
-
-        output  HGRANT,
-                HMASTER,
-                HMASTLOCK
-    );
-
-    modport decoder_mp (
-        input   HCLK,
-                HRESETn,
-                HADDR,
-
-        output  HSEL_DEFAULT,
-                HSEL_SRAM
-                
-    );
 
     clocking monitor_cb @ (posedge HCLK);
         default input #1step; // small skew; tune as needed
@@ -138,7 +93,6 @@ interface ahb_if;
                 HRDATA,
                 HREADY,
                 HRESP,
-                HSEL,
                 HBUSREQ,
                 HLOCK,
                 HGRANT,
@@ -148,5 +102,53 @@ interface ahb_if;
     endclocking
 
         modport monitor_mp (clocking monitor_cb);
+
+        //--------------------
+        //RTL modport
+        //--------------------
+        modport slave_mp (
+        input   HCLK,
+                HRESETn,
+                HADDR,
+                HTRANS,
+                HWRITE,
+                HSIZE,
+                HBURST,
+                HPROT,
+                HWDATA,
+                HMASTER,
+                HMASTLOCK,
+                HSEL_DEFAULT,
+                HSEL_SRAM,
+
+        // output  HRDATA,      using ahb_top to connect local output of slaves thus avoiding multi drives
+        //         HREADY,
+        //         HRESP,
+        //         HSPLIT
+        );
+
+
+        modport arbiter_mp (
+        input   HCLK,
+                HRESETn,
+                HBUSREQ,
+                HLOCK,
+                HSPLIT,
+
+        output  HGRANT,
+                HMASTER,
+                HMASTLOCK
+        );
+
+        modport decoder_mp (
+        input   HCLK,
+                HRESETn,
+                HADDR,
+                HTRANS,
+
+        output  HSEL_DEFAULT,
+                HSEL_SRAM
+                
+        );
 
 endinterface : ahb_if
