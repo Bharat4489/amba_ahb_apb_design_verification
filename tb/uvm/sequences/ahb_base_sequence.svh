@@ -18,10 +18,9 @@ task ahb_base_sequence::body();
     start_item(req);
 
     if (!req.randomize())
-      `uvm_fatal("SEQUENCER:RAND_FAIL", "Randomization failed");
+      `uvm_fatal("SEQUENCE:RAND_FAIL", "Randomization failed");
+    `uvm_info("SEQUENCE:", req.sprint(), UVM_LOW)
 
     finish_item(req);
-
-    `uvm_info("SEQUENCER:", req.sprint(), UVM_LOW)
   end
 endtask
