@@ -31,7 +31,8 @@ interface ahb_if;
     // -------------------------------------------------
     // Slave select and response signals
     // -------------------------------------------------
-    logic [NO_OF_SLAVES-1:0]       HSEL;            // Decoder: slave select (one-hot)
+    logic                          HSEL_SRAM;       // Decoder: select SRAM_slave
+    logic                          HSEL_DEFAULT;    // Decoder: select DEFAULT_slave
     logic                          HREADY;          // Slave : transfer done / wait-state control
     logic [1:0]                    HRESP;           // Slave : response (OKAY, ERROR, RETRY, SPLIT)
 
@@ -113,6 +114,15 @@ interface ahb_if;
                 HMASTLOCK
     );
 
+    modport decoder_mp (
+        input   HCLK,
+                HRESETn,
+                HADDR,
+
+        output  HSEL_DEFAULT,
+                HSEL_SRAM
+                
+    );
 
     clocking monitor_cb @ (posedge HCLK);
         default input #1step; // small skew; tune as needed

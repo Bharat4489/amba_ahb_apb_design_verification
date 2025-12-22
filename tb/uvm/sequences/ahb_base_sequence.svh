@@ -11,7 +11,7 @@ class ahb_base_sequence  extends uvm_sequence#(ahb_seq_item);
 endclass : ahb_base_sequence
 
 task ahb_base_sequence::body();
-  repeat (5) 
+  repeat (15) 
   begin
     req = ahb_seq_item::type_id::create("req");
 

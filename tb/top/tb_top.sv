@@ -6,12 +6,16 @@ module tb_top ();
     import ahb_pkg::*;
     ahb_if ahb_if1();       //instantiate real interface-use parantheses'()' w/o it, we will get compilation error as compiler look for port list 
     
-    ahb_default_slave u_default_slave(.real_if(ahb_if1.slave_mp));    //instantiated and connected default slave
-      // Clock generator: 100 MHz example (10 ns period)
-      initial begin
-        ahb_if1.HCLK = 0;
-        forever #5 ahb_if1.HCLK = ~ahb_if1.HCLK;
-      end
+    //RTL:>>>instantiated and connected
+    ahb_default_slave u_default_slave(.default_if(ahb_if1.slave_mp));    
+    ahb_sram_slave    u_sram_slave(.sram_if(ahb_if1.slave_mp));   
+    ahb_decoder       u_decoder(.decoder_if(ahb_if1.decoder_mp));
+
+    // Clock generator: 100 MHz example (10 ns period)
+    initial begin
+      ahb_if1.HCLK = 0;
+      forever #5 ahb_if1.HCLK = ~ahb_if1.HCLK;
+    end
 
       // Proper reset sequencing on clock edges
       initial begin
