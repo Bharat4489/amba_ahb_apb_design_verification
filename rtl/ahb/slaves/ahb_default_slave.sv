@@ -2,12 +2,10 @@ import ahb_params_pkg::*;
 
 module ahb_default_slave (
     ahb_if.slave_mp default_if,     //connected to (.default_if(ahb_if.slave_mp));
-    logic [DATA_WIDTH-1:0] hrdata_default;
-    logic hready_default;           //transfer done / wait-state control
-    logic [1:0] hresp_default;      //response (OKAY, ERROR, RETRY, SPLIT)
+    output logic [DATA_WIDTH-1:0] hrdata_default,
+    output logic hready_default,           //transfer done / wait-state control
+    output logic [1:0] hresp_default      //response (OKAY, ERROR, RETRY, SPLIT)
 );
-
-
     // ------------------------------------------------------------
     // Default AHB Slave
     //  - Responds to unmapped addresses
@@ -27,7 +25,7 @@ module ahb_default_slave (
             hready_default <= 1'b1;
 
             // Respond only when this slave is selected
-            if (default_if.HSEL_DEFAULT && (default_if.HTRANS != 2'b00)) begin
+            if (default_if.HSEL_DEFAULT && (default_if.HTRANS != IDLE)) begin
                 hresp_default <= 2'b01; // ERROR response
             end
             else begin

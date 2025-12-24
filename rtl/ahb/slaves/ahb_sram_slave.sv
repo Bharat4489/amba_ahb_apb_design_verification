@@ -4,7 +4,7 @@ module ahb_sram_slave (
     ahb_if.slave_mp sram_if,
     output logic [DATA_WIDTH-1:0] hrdata_sram,
     output logic hready_sram,           //transfer done / wait-state control
-    output logic [1:0] hresp_sram      //response (OKAY, ERROR, RETRY, SPLIT)
+    output logic [1:0] hresp_sram       //response (OKAY, ERROR, RETRY, SPLIT)
 );
 
     // ------------------------------------------------------------
@@ -14,15 +14,13 @@ module ahb_sram_slave (
     logic [DATA_WIDTH-1:0] sram_memory [0:2047];
     logic [3:0] byte_en;
 
- 
-
     // Word-aligned address (internal SRAM index)
     int unsigned word_addr;
 
     // ------------------------------------------------------------
     // Always-ready, fast SRAM slave
     // ------------------------------------------------------------
-    assign hrdata_sram = 1'b1;     // No wait states
+    assign hready_sram = 1'b1;     // No wait states
     assign hresp_sram  = 2'b00;    // OKAY response always
 
     // ------------------------------------------------------------
@@ -47,7 +45,7 @@ module ahb_sram_slave (
         if (!sram_if.HRESETn) begin
             hrdata_sram <= '0;
         end
-        else if (sram_if.HSEL_SRAM && (sram_if.HTRANS == 2'b10 || sram_if.HTRANS == 2'b11)) begin
+        else if (sram_if.HSEL_SRAM && (sram_if.HTRANS == NONSEQ || sram_if.HTRANS == SEQ)) begin
 
             word_addr = sram_if.HADDR[12:2];    // Convert byte address to word index
 

@@ -14,10 +14,13 @@ class ahb_base_seq_item extends uvm_sequence_item;          //adding seq items
     rand logic [2:0]                HBURST;
     rand logic [DATA_WIDTH-1:0]     HWDATA;
     rand logic [ADDR_WIDTH-1:0]     HADDR;
-    rand logic HREADY;
+    rand logic                      HREADY;
          logic [3:0]                HPROT;
          logic [NO_OF_MASTERS-1:0]  HBUSREQ;
          logic [DATA_WIDTH-1:0]     HRDATA;
+         logic                      HSEL_DEFAULT;
+         logic                      HSEL_SRAM;
+         logic [1:0]                HRESP;
 
     extern function void do_print(uvm_printer printer);     //how does do_print works
 

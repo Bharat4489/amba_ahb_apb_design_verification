@@ -25,19 +25,22 @@ endfunction
 task ahb_master_driver::run_phase(uvm_phase phase);
   ahb_seq_item req;
 
-  `uvm_info("DRIVER", "Entered run_phase", UVM_LOW)
+  `uvm_info("DRIVER", "Entered run_phase", UVM_MEDIUM)
 
   // Wait for reset deassertion before doing anything
   wait (dut_vif.driver_cb.HRESETn === 1'b1);
-  `uvm_info("DRIVER", "Reset deasserted; starting bus traffic", UVM_LOW)
+  `uvm_info("DRIVER", "Reset deasserted; starting bus traffic", UVM_MEDIUM)
 
   forever begin
-    `uvm_info("DRIVER", "Waiting for item", UVM_LOW)
+    `uvm_info("DRIVER", "Waiting for item", UVM_MEDIUM)
     seq_item_port.get_next_item(req);
-    `uvm_info("DRIVER", req.sprint(), UVM_LOW)
+    // `uvm_info("DRIVER", req.sprint(), UVM_MEDIUM)
+    `uvm_info("DRIVER", $sformatf("HADDR=0x%08h HSIZE=%0d HTRANS=%0b HWRITE=%0b HWDATA=0x%08h",
+            req.HADDR, req.HSIZE, req.HTRANS, req.HWRITE, req.HWDATA), UVM_MEDIUM)
+
     send_to_dut(req);
     seq_item_port.item_done();
-    `uvm_info("DRIVER", "Item done", UVM_LOW)
+    `uvm_info("DRIVER", "Item done", UVM_MEDIUM)
   end
 endtask
 
@@ -49,10 +52,14 @@ task ahb_master_driver::send_to_dut(ahb_seq_item req);
         dut_vif.driver_cb.HSIZE   <= req.HSIZE;
         dut_vif.driver_cb.HADDR   <= req.HADDR;
 
+    @(dut_vif.driver_cb);
+        dut_vif.driver_cb.HWDATA    <=req.HWDATA;   //driving data in data phase
+        if(dut_vif.driver_cb.HREADY==1'b1)
+            dut_vif.driver_cb.HTRANS <= IDLE;
         // Wait until the slave completes the transfer
-        do @(dut_vif.driver_cb);     // One-cycle transfer assumption (no wait states yet)   -AFTER ADDING SLAVE WE WILL USE HREADY to deassert HTRANS
-        while (dut_vif.driver_cb.HREADY == 0);
+    // do @(dut_vif.driver_cb);     // One-cycle transfer assumption (no wait states yet)   -AFTER ADDING SLAVE WE WILL USE HREADY to deassert HTRANS
+    // while (dut_vif.driver_cb.HREADY == 0);
+    //     // Now it is legal to move to IDLE / next transfer
+    //     dut_vif.driver_cb.HTRANS <= IDLE;  // Return bus to IDLE
 
-        // Now it is legal to move to IDLE / next transfer
-        dut_vif.driver_cb.HTRANS <= 2'b00;  // Return bus to IDLE
-endtask   //send_to_dut
+endtask : send_to_dut

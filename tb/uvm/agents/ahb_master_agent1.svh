@@ -20,6 +20,7 @@ endclass : ahb_master_agent
 
 function void ahb_master_agent::build_phase(uvm_phase phase);
     super.build_phase(phase);
+    ap = new("ap", this);
 
     m_ahb_monitor = ahb_master_monitor::type_id::create("m_ahb_monitor", this); //monitor is always created irrespectiVE of is_active
 

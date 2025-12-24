@@ -37,51 +37,86 @@ endfunction //ahb_master_monitor::build_phase
   // run_phase
   // ------------------------------------------------------------------
 
+
 task ahb_master_monitor::run_phase(uvm_phase phase);
-  `uvm_info("MONITOR", "Monitor run_phase entered", UVM_MEDIUM)
+  `uvm_info("MONITOR", "Entered run_phase", UVM_MEDIUM)
 
   // Guard against missing virtual interface
   if (dut_vif == null)
     `uvm_fatal("MONITOR:NOVIF", "monitor VIF is null; check config_db set/get keys")
 
+  // Do nothing while reset is asserted
+  wait (dut_vif.monitor_cb.HRESETn);
+
   forever begin
-    @(dut_vif.monitor_cb);   //    This avoids races compared to using 'wait(...)' alone.
-    // 2) Address/Control phase detect:
-    //    Valid transfer when HREADY==1 and HTRANS is NONSEQ(2'b10) or SEQ(2'b11).
+    // Sample at the clocking-block edge (avoids races)
+    @(dut_vif.monitor_cb);
+
+    // Skip if reset glitched back
+    if (!dut_vif.monitor_cb.HRESETn)
+      continue;
+
+    // ----------------------------
+    // ADDRESS PHASE: detect valid beat
+    // ----------------------------
     if (dut_vif.monitor_cb.HREADY &&
-        (dut_vif.monitor_cb.HTRANS inside {2'b10, 2'b11})) begin
+        (dut_vif.monitor_cb.HTRANS inside {NONSEQ, SEQ})) begin
 
-      // Create a fresh transaction object BEFORE assigning fields (avoid TRNULLID).
-      ahb_seq_item txn = ahb_seq_item::type_id::create("txn", this);
+      // Create txn only when a valid address phase is detected
+      ahb_seq_item txn = ahb_seq_item::type_id::create("txn");
 
-      // Sample address/control on the address-phase edge.
-      txn.HTRANS   = dut_vif.monitor_cb.HTRANS;
-      txn.HWRITE   = dut_vif.monitor_cb.HWRITE;
-      txn.HADDR    = dut_vif.monitor_cb.HADDR;
-      txn.HSIZE    = dut_vif.monitor_cb.HSIZE;
-      txn.HBURST   = dut_vif.monitor_cb.HBURST;
-      txn.HPROT    = dut_vif.monitor_cb.HPROT;
-      txn.HREADY   = dut_vif.monitor_cb.HREADY;
-      txn.HWDATA   = dut_vif.monitor_cb.HWDATA; 
-      txn.HBUSREQ  = dut_vif.monitor_cb.HBUSREQ; // keep only if you model arbitration
+      // Capture address/control (address phase)
+      txn.HTRANS = dut_vif.monitor_cb.HTRANS;
+      txn.HWRITE = dut_vif.monitor_cb.HWRITE;
+      txn.HADDR  = dut_vif.monitor_cb.HADDR;
+      txn.HSIZE  = dut_vif.monitor_cb.HSIZE;
+      txn.HBURST = dut_vif.monitor_cb.HBURST;
+      txn.HPROT  = dut_vif.monitor_cb.HPROT;
+      txn.HSEL_DEFAULT = dut_vif.monitor_cb.HSEL_DEFAULT;
+      txn.HSEL_SRAM    = dut_vif.monitor_cb.HSEL_SRAM;
 
-      // 3) Data-phase handshake:
-      //    Respect AHB wait-states—data phase completes when HREADY goes high again.
-      //    Using do..while on the clocking block keeps us edge-aligned.
-      do @(dut_vif.monitor_cb); while (!dut_vif.monitor_cb.HREADY);
+      // ----------------------------
+      // DATA PHASE: wait until beat completes (handle wait-states)
+      // ----------------------------
+      do begin
+        @(dut_vif.monitor_cb);
+        if (!dut_vif.monitor_cb.HRESETn) begin
+          // Reset mid-transfer: drop the transaction; don't publish
+          txn = null;
+          break;
+        end
+      end while (!dut_vif.monitor_cb.HREADY);
 
-      // Sample the data when the data phase completes.
-      if (txn.HWRITE)
-        txn.HWDATA = dut_vif.monitor_cb.HWDATA;
-      else
-        txn.HRDATA = dut_vif.monitor_cb.HRDATA;
+      if (txn != null) begin
+        // Sample data & response at data-phase completion
+        if (txn.HWRITE)
+          txn.HWDATA = dut_vif.monitor_cb.HWDATA;
+        else
+          txn.HRDATA = dut_vif.monitor_cb.HRDATA;
 
-      `uvm_info("MONITOR:", txn.sprint(), UVM_LOW)
+        txn.HRESP  = dut_vif.monitor_cb.HRESP;
+        txn.HREADY = dut_vif.monitor_cb.HREADY; // will be 1 here
 
-      // 4) Publish this single beat to the analysis network.
-      ap.write(txn);
-      `uvm_info("MONITOR", "Transaction sent to scoreboard", UVM_MEDIUM)
+        `uvm_info("MONITOR",
+          $sformatf("HADDR=0x%08h HSIZE=%0d HTRANS=%0b HWRITE=%0b HWDATA=0x%08h HRDATA=0x%08h HREADY=%0b HSEL_DEFAULT=%0b HSEL_SRAM=%0b HRESP=%0d",
+                    txn.HADDR, txn.HSIZE, txn.HTRANS, txn.HWRITE,
+                    txn.HWRITE ? txn.HWDATA : '0,
+                    txn.HWRITE ? '0 : txn.HRDATA,
+                    txn.HREADY,
+                    txn.HSEL_DEFAULT,
+                    txn.HSEL_SRAM,
+                    txn.HRESP),
+          UVM_MEDIUM)
+
+        // ----------------------------
+        // PUBLISH: only after data-phase completion
+        // ----------------------------
+        ap.write(txn);
+        `uvm_info("MONITOR", "Transaction written to ap", UVM_MEDIUM)
+      end
+      // else: reset hit mid-transfer; nothing to publish
     end
-    // If condition is not met, loop back on next clock; monitor remains passive.
+    // else: IDLE/BUSY or not yet accepted → ignore
   end // forever
 endtask
+

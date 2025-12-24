@@ -1,3 +1,5 @@
+import ahb_params_pkg::*;
+
 module ahb_decoder (
     ahb_if.decoder_mp decoder_if
 );
@@ -9,7 +11,7 @@ module ahb_decoder (
 
         // Only decode during valid transfers
         if (decoder_if.HRESETn &&
-            (decoder_if.HTRANS == 2'b10 || decoder_if.HTRANS == 2'b11)) begin
+            (decoder_if.HTRANS == NONSEQ || decoder_if.HTRANS == SEQ)) begin
 
             if (decoder_if.HADDR >= 32'h0000_0000 &&
                 decoder_if.HADDR <= 32'h0000_FFFF)

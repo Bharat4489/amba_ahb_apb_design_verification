@@ -11,7 +11,9 @@ interface ahb_if;
     // -------------------------------------------------
     logic                          HCLK;            // Clock source
     logic                          HRESETn;         // Reset controller (active low)
-
+    //display pattern name in waveform
+    string                         pattern_name;
+    event                          pattern_update;
     // -------------------------------------------------
     // Address and control signals (from master)
     // -------------------------------------------------
@@ -42,10 +44,9 @@ interface ahb_if;
     logic [NO_OF_MASTERS-1:0]      HBUSREQ;         // Master: bus request
     logic [NO_OF_MASTERS-1:0]      HLOCK;           // Master: locked transfer request
     logic [NO_OF_MASTERS-1:0]      HGRANT;          // Arbiter: bus grant
-    logic [$clog2(NO_OF_MASTERS)-1:0] HMASTER;     // Arbiter: current master number
-    logic                          HMASTLOCK;      // Arbiter: locked sequence indication
+    logic [$clog2(NO_OF_MASTERS)-1:0] HMASTER;      // Arbiter: current master number
+    logic                          HMASTLOCK;       // Arbiter: locked sequence indication
     logic [NO_OF_MASTERS-1:0]      HSPLIT;          // Slave : split completion per master
-
 
     // -------------------------------------------------
     // modport- master_mp, slave_mp, arbiter_mp, monitor_mp, 
@@ -98,7 +99,9 @@ interface ahb_if;
                 HGRANT,
                 HMASTER,
                 HMASTLOCK,
-                HSPLIT;
+                HSPLIT,
+                HSEL_DEFAULT,
+                HSEL_SRAM;
     endclocking
 
         modport monitor_mp (clocking monitor_cb);

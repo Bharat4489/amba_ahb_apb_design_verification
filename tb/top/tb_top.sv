@@ -26,6 +26,7 @@ module tb_top ();
 
       initial begin
         // Place the interface into the UVM configuration database
+        uvm_config_db#(virtual ahb_if)::set(null, "*", "ahb_vif", ahb_if1);
         uvm_config_db#(virtual ahb_if.master_mp)::set(null, "*", "ahb_vif", ahb_if1.master_mp);
         uvm_config_db#(virtual ahb_if.monitor_mp)::set(null, "*", "ahb_vif", ahb_if1.monitor_mp);
         uvm_config_db#(virtual ahb_if.slave_mp)::set(null, "*", "ahb_vif", ahb_if1.slave_mp);
@@ -41,7 +42,7 @@ module tb_top ();
 
 
       initial begin
-        #500ns;  // Wait for 100 ns of simulation time
+        #900ns;  // Wait for 100 ns of simulation time
         $display("[%0t] Simulation timeout reached. Finishing...", $time);
         $finish; // Ends simulation cleanly
       end

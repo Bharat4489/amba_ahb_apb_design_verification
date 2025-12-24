@@ -1,5 +1,3 @@
-//UNCHECKED
-
 class ahb_seq_item extends ahb_base_seq_item;       //adding constraints on seq items
     `uvm_object_utils(ahb_seq_item)
 
@@ -7,10 +5,17 @@ class ahb_seq_item extends ahb_base_seq_item;       //adding constraints on seq 
         super.new(name);
     endfunction //new()
 
-    constraint HTRANS_c {HTRANS == 'b10;}        //currently only NON_SEQ
-    constraint HSEL_c   {HSEL == 'b0;}           //curently have only one slave
-    constraint HADDR_c { HADDR dist { [32'h0000_0000 : 32'h0000_FFFF] := 60,
-                                      [32'h0001_0000 : 32'hFFFF_FFFF] := 40 }; }
-
+    constraint master_signal_c {
+        HTRANS  inside {NONSEQ, SEQ};
+        HSIZE   inside {BYTE, HALF_WORD, WORD};
+        HADDR   inside {[32'h0000_0000 : 32'h0000_FFFF]};
+        // - BYTE      : no alignment constraint
+        // - HALF_WORD : 16-bit alignment
+        // - WORD      : 32-bit alignment
+        (HSIZE == HALF_WORD) -> (HADDR[0]   == 1'b0);
+        (HSIZE == WORD     ) -> (HADDR[1:0] == 2'b00);
+    }
 
 endclass //ahb_seq_item extends ahb_base_seq_item
+
+
