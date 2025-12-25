@@ -8,10 +8,12 @@ class multiple_write_read_seq extends ahb_base_sequence;
 
 endclass : multiple_write_read_seq
 
+//-------NEW--------//
 function multiple_write_read_seq::new(string name = "multiple_write_read_seq");
     super.new(name);
 endfunction : new
 
+//-------BODY--------//
 task multiple_write_read_seq::body();
     string msg;
     $sformat(msg,"starting consecutive writes");

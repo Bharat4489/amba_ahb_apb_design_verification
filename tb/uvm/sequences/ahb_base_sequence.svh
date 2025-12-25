@@ -2,7 +2,7 @@
 class ahb_base_sequence  extends uvm_sequence#(ahb_seq_item);
     `uvm_object_utils(ahb_base_sequence)
 
-    virtual ahb_if if1;
+    virtual ahb_if if1;   //to print pattern name in waves
     ahb_seq_item req;
 
     function new(string name = "ahb_base_sequence");
