@@ -11,55 +11,79 @@ class ahb_master_driver extends uvm_driver #(ahb_seq_item);
 
     extern function void build_phase(uvm_phase phase);
     extern task run_phase (uvm_phase phase);
-    extern task send_to_dut (ahb_seq_item req);
-endclass //ahb_master_driver extends uvm_driver
+    extern task automatic drive_control (ahb_seq_item req_current);
+    extern task automatic drive_data (ahb_seq_item req_current);
+endclass : ahb_master_driver 
 
 function void ahb_master_driver::build_phase(uvm_phase phase);
     super.build_phase(phase);
         if (!uvm_config_db#(virtual ahb_if.master_mp)::get(this, "", "ahb_vif", dut_vif)) begin  //not checking null== dut_vif, as we are getting it here from config database
             `uvm_fatal("DRIVER:NOVIF","unable to get VIF from uvm_config_db")
         end  
-endfunction
+endfunction : build_phase
 
 
 task ahb_master_driver::run_phase(uvm_phase phase);
-  ahb_seq_item req;
+  ahb_seq_item req_current, req_next;
+  bit have_next=0;
 
   `uvm_info("DRIVER", "Entered run_phase", UVM_MEDIUM)
 
-  // Wait for reset deassertion before doing anything
-  wait (dut_vif.driver_cb.HRESETn === 1'b1);
+  wait (dut_vif.driver_cb.HRESETn === 1'b1);                    // Wait for reset deassertion before doing anything
   `uvm_info("DRIVER", "Reset deasserted; starting bus traffic", UVM_MEDIUM)
 
+  seq_item_port.get_next_item(req_current);                    //fetching current req
+
   forever begin
-    `uvm_info("DRIVER", "Waiting for item", UVM_MEDIUM)
-    seq_item_port.get_next_item(req);
-    // `uvm_info("DRIVER", req.sprint(), UVM_MEDIUM)
     `uvm_info("DRIVER", $sformatf("HADDR=0x%08h HSIZE=%0d HTRANS=%0b HWRITE=%0b HWDATA=0x%08h",
-            req.HADDR, req.HSIZE, req.HTRANS, req.HWRITE, req.HWDATA), UVM_MEDIUM)
+            req_current.HADDR, req_current.HSIZE, req_current.HTRANS, req_current.HWRITE, req_current.HWDATA), UVM_MEDIUM)
 
-    send_to_dut(req);
-    seq_item_port.item_done();
+    @(dut_vif.driver_cb);
+    drive_control(req_current);                                 //CONTROL PHASE START AS SOON AS THERE IS A SEQ_ITEM AVAILABLE
+    if(have_next) begin
+        do @(dut_vif.driver_cb);
+        while(!dut_vif.driver_cb.HREADY);                           //HREADY WILL START DATA PHASE
+        drive_data(req_next);
+        have_next = 0;
+        seq_item_port.item_done(req_next);
+    end
+
+    do @(dut_vif.driver_cb);
+    while(!dut_vif.driver_cb.HREADY);                           //HREADY WILL START DATA PHASE
+    drive_data(req_current);
+
+    if (!have_next) begin                                       //check if there is next txn in sequence for pipelining 
+        if (seq_item_port.try_next_item(req_next)) begin        //1 if next item available
+            have_next=1;
+        end
+    end
+
+    seq_item_port.item_done(req_current);                                  //transaction complete  
     `uvm_info("DRIVER", "Item done", UVM_MEDIUM)
+
+
+    if (have_next) begin                                        //fetch txn for next cycle
+        seq_item_port.get_next_item(req_next);
+        drive_control(req_next);
+        
+    end else begin
+        seq_item_port.get_next_item(req_current);
+    end
+
   end
-endtask
+endtask : run_phase
 
-task ahb_master_driver::send_to_dut(ahb_seq_item req);
-  //drive addr and control info
-    @(dut_vif.driver_cb);
-        dut_vif.driver_cb.HWRITE  <= req.HWRITE;
-        dut_vif.driver_cb.HTRANS  <= req.HTRANS; //NONSEQ
-        dut_vif.driver_cb.HSIZE   <= req.HSIZE;
-        dut_vif.driver_cb.HADDR   <= req.HADDR;
 
-    @(dut_vif.driver_cb);
-        dut_vif.driver_cb.HWDATA    <=req.HWDATA;   //driving data in data phase
-        if(dut_vif.driver_cb.HREADY==1'b1)
-            dut_vif.driver_cb.HTRANS <= IDLE;
-        // Wait until the slave completes the transfer
-    // do @(dut_vif.driver_cb);     // One-cycle transfer assumption (no wait states yet)   -AFTER ADDING SLAVE WE WILL USE HREADY to deassert HTRANS
-    // while (dut_vif.driver_cb.HREADY == 0);
-    //     // Now it is legal to move to IDLE / next transfer
-    //     dut_vif.driver_cb.HTRANS <= IDLE;  // Return bus to IDLE
+task automatic ahb_master_driver::drive_control(ahb_seq_item req_current);
+    dut_vif.driver_cb.HWRITE  <= req_current.HWRITE;
+    dut_vif.driver_cb.HTRANS  <= req_current.HTRANS; 
+    dut_vif.driver_cb.HSIZE   <= req_current.HSIZE;
+    dut_vif.driver_cb.HADDR   <= req_current.HADDR;
 
-endtask : send_to_dut
+endtask : drive_control
+
+task automatic ahb_master_driver::drive_data(ahb_seq_item req_current);
+    if(dut_vif.driver_cb.HWRITE)
+        dut_vif.driver_cb.HWDATA  <= req_current.HWDATA;   
+endtask : drive_data
+
