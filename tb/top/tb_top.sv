@@ -42,7 +42,7 @@ module tb_top ();
 
 
       initial begin
-        #900ns;  // Wait for 100 ns of simulation time
+        #9000ns;  // Wait for 100 ns of simulation time
         $display("[%0t] Simulation timeout reached. Finishing...", $time);
         $finish; // Ends simulation cleanly
       end

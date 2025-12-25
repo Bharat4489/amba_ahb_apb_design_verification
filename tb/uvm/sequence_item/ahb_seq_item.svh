@@ -13,7 +13,7 @@ class ahb_seq_item extends ahb_base_seq_item;       //adding constraints on seq 
         (HSIZE == WORD     ) -> (HADDR[1:0] == 2'b00);          // - WORD      : 32-bit alignment
     }
 
-    pattern_id_e pattern_id;
+    pattern_id_t pattern_id;
 
 endclass //ahb_seq_item extends ahb_base_seq_item
 

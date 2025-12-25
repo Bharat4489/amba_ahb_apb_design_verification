@@ -1,29 +1,59 @@
 
-    class my_directed_test extends uvm_test;
-        `uvm_component_utils(my_directed_test)
+class my_directed_test extends uvm_test;
+    `uvm_component_utils(my_directed_test)
 
-        ahb_env env;
+    ahb_env env;
 
-        function new(string name="my_directed_test", uvm_component parent=null);
-            super.new(name, parent);
-        endfunction
+    extern function new(string name="my_directed_test", uvm_component parent=null);
+    extern function void build_phase(uvm_phase phase);
+    extern task run_phase(uvm_phase phase);
 
-        function void build_phase(uvm_phase phase);
-            super.build_phase(phase);
-            env = ahb_env::type_id::create("env", this);
-        endfunction
+endclass
 
-        task run_phase(uvm_phase phase);
-            multiple_write_read_seq dir_seq;
-            `uvm_info("my_directed_test", "RAISING OBJECTION", UVM_MEDIUM)
-            phase.raise_objection(this);
+    // -------------------------
+    // NEW
+function my_directed_test::new(string name="my_directed_test", uvm_component parent=null);
+    super.new(name, parent);
+endfunction : new
 
-            dir_seq = multiple_write_read_seq::type_id::create("dir_seq");
-            `uvm_info("my_directed_test", "STARTING dir_seqUENCE", UVM_MEDIUM)
-            dir_seq.start(env.m_ahb_agent.m_ahb_sequencer);
+    // -------------------------
+    // BUILD PHASE
+function void my_directed_test::build_phase(uvm_phase phase);
+    super.build_phase(phase);
+    env = ahb_env::type_id::create("env", this);
+endfunction : build_phase
 
-            #100;
-            `uvm_info("my_directed_test", "DROPPING OBJECTION", UVM_MEDIUM)
-            phase.drop_objection(this);
-        endtask
-    endclass
+    // -------------------------
+    // RUN PHASE
+task my_directed_test::run_phase(uvm_phase phase);
+    multiple_write_read_seq dir_seq1;
+    ahb_basic_burst_seq     dir_seq2;
+    ahb_incr_burst_seq      dir_seq3;
+
+    `uvm_info("my_directed_test", "RAISING OBJECTION", UVM_MEDIUM)
+    phase.raise_objection(this);
+
+    // -------------------------
+    // STARTING multiple_write_read_seq
+    // -------------------------
+    dir_seq1 = multiple_write_read_seq::type_id::create("dir_seq1");
+    `uvm_info("my_directed_test", "STARTING multiple_write_read_seq", UVM_MEDIUM)
+    dir_seq1.start(env.m_ahb_agent.m_ahb_sequencer);
+
+    // -------------------------
+    // STARTING ahb_basic_burst_seq
+    // -------------------------
+    dir_seq2 = ahb_basic_burst_seq::type_id::create("dir_seq2");
+    `uvm_info("my_directed_test", "STARTING ahb_basic_burst_seq", UVM_MEDIUM)
+    dir_seq2.start(env.m_ahb_agent.m_ahb_sequencer);  
+
+    // -------------------------
+    // STARTING ahb_incr_burst_seq
+    // -------------------------
+    dir_seq3 = ahb_incr_burst_seq::type_id::create("dir_seq3");
+    `uvm_info("my_directed_test", "STARTING ahb_incr_burst_seq", UVM_MEDIUM)
+    dir_seq3.start(env.m_ahb_agent.m_ahb_sequencer);                       
+
+    `uvm_info("my_directed_test", "DROPPING OBJECTION", UVM_MEDIUM)
+    phase.drop_objection(this);
+endtask

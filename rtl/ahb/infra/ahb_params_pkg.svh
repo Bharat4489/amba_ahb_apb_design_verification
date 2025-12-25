@@ -30,7 +30,10 @@ package ahb_params_pkg;
         PATTERN_SINGLE,
         PATTERN_INCR;
         PATTERN_INCR4,
-        PATTERN_WRAP4
+        PATTERN_INCR8,
+        PATTERN_INCR16,
+        PATTERN_WRAP4,
+        PATTERN_UNDEFINED
     } pattern_id_t;
 
 endpackage : ahb_params_pkg

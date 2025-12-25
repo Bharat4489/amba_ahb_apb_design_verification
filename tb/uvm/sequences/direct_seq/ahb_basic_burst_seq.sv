@@ -1,20 +1,20 @@
-class ahb_burst_directed_seq extends ahb_base_sequence;
-    `uvm_object_utils(ahb_burst_directed_seq)
+class ahb_basic_burst_seq extends ahb_base_sequence;
+    `uvm_object_utils(ahb_basic_burst_seq)
 
-    extern function new(string name = "ahb_burst_directed_seq");
+    extern function new(string name = "ahb_basic_burst_seq");
     extern task body();
 
-endclass //ahb_burst_directed_seq
+endclass //ahb_basic_burst_seq
 
     // -------------------------
     // NEW
-function ahb_burst_directed_seq::new(string new = "ahb_burst_directed_seq")
+function ahb_basic_burst_seq::new(string name = "ahb_basic_burst_seq")
     super.new(name);
 endfunction
 
     // -------------------------
     // BODY
-task automatic ahb_burst_directed_seq::body();
+task automatic ahb_basic_burst_seq::body();
     ahb_seq_item req;   //seq_item handle
     int offset = 32'h100;
 
