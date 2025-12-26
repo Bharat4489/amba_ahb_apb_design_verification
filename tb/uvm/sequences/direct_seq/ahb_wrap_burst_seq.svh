@@ -71,6 +71,8 @@ task ahb_wrap_burst_seq::body();
         start_item(req);
 
         req.HBURST = burst_cfg.HBURST;
+        `uvm_info("ahb_wrap_burst_seq", $sformatf("req.HBURST = %0d",req.HBURST), UVM_MEDIUM)
+
         req.HSIZE  = burst_cfg.HSIZE;
         req.HWRITE = 1'b1;
         req.HADDR  = aligned_base + ((offset + i * beat_size) % boundary);
@@ -94,6 +96,7 @@ task ahb_wrap_burst_seq::body();
         start_item(req);
 
         req.HBURST = burst_cfg.HBURST;
+        `uvm_info("ahb_wrap_burst_seq", $sformatf("req.HBURST = %0d",req.HBURST), UVM_MEDIUM)
         req.HSIZE  = burst_cfg.HSIZE;
         req.HWRITE = 1'b0;
         req.HADDR  = aligned_base + ((offset + i * beat_size) % boundary);
