@@ -111,6 +111,40 @@ task ahb_master_monitor::run_phase(uvm_phase phase);
         // ----------------------------
         // PUBLISH: only after data-phase completion
         // ----------------------------
+        txn_cnt++;
+
+      dut_vif.AHB_TXN_INFO = $sformatf(
+        "[%0d] %s %s %s %s %s A=0x%08h D=0x%08h",
+        txn_cnt,
+        txn.seq_name,
+
+        // HBURST decode
+        (txn.HBURST == INCR)   ? "INCR"   :
+        (txn.HBURST == INCR4)  ? "INCR4"  :
+        (txn.HBURST == INCR8)  ? "INCR8"  :
+        (txn.HBURST == INCR16) ? "INCR16" :
+        (txn.HBURST == WRAP4)  ? "WRAP4"  :
+        (txn.HBURST == WRAP8)  ? "WRAP8"  :
+        (txn.HBURST == WRAP16) ? "WRAP16" : "UNK",
+
+        // HSIZE decode
+        (txn.HSIZE == BYTE)      ? "BYTE" :
+        (txn.HSIZE == HALF_WORD) ? "HWORD":
+        (txn.HSIZE == WORD)      ? "WORD" : "UNK",
+
+        // HTRANS decode
+        (txn.HTRANS == NONSEQ) ? "NONSEQ" :
+        (txn.HTRANS == SEQ)    ? "SEQ"    : "OTH",
+
+        // READ / WRITE
+        txn.HWRITE ? "WRITE" : "READ",
+
+        txn.HADDR,
+
+        // Data (show WDATA for write, RDATA for read)
+        txn.HWRITE ? txn.HWDATA : txn.HRDATA
+      );
+
         ap.write(txn);
       end
       // else: reset hit mid-transfer; nothing to publish
