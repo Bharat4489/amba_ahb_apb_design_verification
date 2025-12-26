@@ -14,7 +14,7 @@ package ahb_params_pkg;
     parameter SEQ=2'b11; 
     // HSIZE encoding
     parameter BYTE=3'b000;
-    parameter HALF_WORD=3'b001
+    parameter HALF_WORD=3'b001;
     parameter WORD=3'b010;
     // HBURST encodings
     parameter SINGLE  = 3'b000; 
@@ -28,7 +28,7 @@ package ahb_params_pkg;
 
     typedef enum int {
         PATTERN_SINGLE,
-        PATTERN_INCR;
+        PATTERN_INCR,
         PATTERN_INCR4,
         PATTERN_INCR8,
         PATTERN_INCR16,
