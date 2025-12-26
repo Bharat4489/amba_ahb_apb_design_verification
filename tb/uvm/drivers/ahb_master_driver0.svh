@@ -59,7 +59,15 @@ task ahb_master_driver0::run_phase(uvm_phase phase);
 
     // Complete transaction
     seq_item_port.item_done();
-
+    `uvm_info("DRIVER",
+            $sformatf("HADDR=0x%08h HSIZE=%0d HBURST=%0d HTRANS=%0b HWRITE=%0b HWDATA=0x%08h HREADY=%0b HBUSREQ=%0b HGRANT=%0b",
+                dut_vif.driver_cb.HADDR,    dut_vif.driver_cb.HSIZE,
+                dut_vif.driver_cb.HBURST,   dut_vif.driver_cb.HTRANS,
+                dut_vif.driver_cb.HWRITE,   dut_vif.driver_cb.HWDATA,
+                dut_vif.driver_cb.HREADY,   dut_vif.driver_cb.HBUSREQ[0],
+                dut_vif.driver_cb.HGRANT[0]),
+            UVM_MEDIUM
+            );
     // Release bus
     dut_vif.driver_cb.HBUSREQ[0] <= 1'b0;
   end
