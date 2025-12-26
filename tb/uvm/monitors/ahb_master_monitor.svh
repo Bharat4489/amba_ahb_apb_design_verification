@@ -112,7 +112,6 @@ task ahb_master_monitor::run_phase(uvm_phase phase);
         // PUBLISH: only after data-phase completion
         // ----------------------------
         ap.write(txn);
-        `uvm_info("MONITOR", "Transaction written to ap", UVM_MEDIUM)
       end
       // else: reset hit mid-transfer; nothing to publish
     end
