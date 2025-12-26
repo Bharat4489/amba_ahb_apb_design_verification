@@ -28,6 +28,15 @@ task multiple_write_read_seq::body();
             req.HSIZE   = WORD;
             req.HWDATA  = 32'(200*i);
             req.HWRITE  = 1'b1;
+            `uvm_info("DRIVER",
+                    $sformatf("HADDR=0x%08h HSIZE=%0d HBURST=%0d HTRANS=%0b HWRITE=%0b HWDATA=0x%08h HREADY=%0b HBUSREQ=%0b HGRANT=%0b",
+                        dut_vif.driver_cb.HADDR,    dut_vif.driver_cb.HSIZE,
+                        dut_vif.driver_cb.HBURST,   dut_vif.driver_cb.HTRANS,
+                        dut_vif.driver_cb.HWRITE,   dut_vif.driver_cb.HWDATA,
+                        dut_vif.driver_cb.HREADY,   dut_vif.driver_cb.HBUSREQ[0],
+                        dut_vif.driver_cb.HGRANT[0]),
+                    UVM_MEDIUM
+                    );
             finish_item(req);
         end
 
@@ -42,6 +51,15 @@ task multiple_write_read_seq::body();
             req.HTRANS  = NONSEQ;
             req.HSIZE   = WORD;
             req.HWRITE  = 1'b0;
+            `uvm_info("DRIVER",
+                    $sformatf("HADDR=0x%08h HSIZE=%0d HBURST=%0d HTRANS=%0b HWRITE=%0b HWDATA=0x%08h HREADY=%0b HBUSREQ=%0b HGRANT=%0b",
+                        dut_vif.driver_cb.HADDR,    dut_vif.driver_cb.HSIZE,
+                        dut_vif.driver_cb.HBURST,   dut_vif.driver_cb.HTRANS,
+                        dut_vif.driver_cb.HWRITE,   dut_vif.driver_cb.HWDATA,
+                        dut_vif.driver_cb.HREADY,   dut_vif.driver_cb.HBUSREQ[0],
+                        dut_vif.driver_cb.HGRANT[0]),
+                    UVM_MEDIUM
+                    );
             finish_item(req);
         end
 
