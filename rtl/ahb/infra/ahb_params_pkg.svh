@@ -33,6 +33,8 @@ package ahb_params_pkg;
         PATTERN_INCR8,
         PATTERN_INCR16,
         PATTERN_WRAP4,
+        PATTERN_WRAP8,
+        PATTERN_WRAP16,
         PATTERN_UNDEFINED
     } pattern_id_t;
 

@@ -10,7 +10,7 @@ endclass //ahb_incr_burst_seq
 
     // -------------------------
     // NEW
-function ahb_incr_burst_seq::new(string new = "ahb_incr_burst_seq")
+function ahb_incr_burst_seq::new(string name = "ahb_incr_burst_seq");
     super.new(name);
 endfunction
 
