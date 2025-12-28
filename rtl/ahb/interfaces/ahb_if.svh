@@ -3,9 +3,10 @@
 // -------------------------------------------------
 
 `timescale 1ns/1ps
+import ahb_params_pkg::*;
 
 interface ahb_if;
-    import ahb_params_pkg::*;
+
     // -------------------------------------------------
     // Global signals
     // -------------------------------------------------
@@ -14,15 +15,25 @@ interface ahb_if;
     //display pattern name in waveform
     string                         pattern_name;
     event                          pattern_update;
+    string                         AHB_TXN_INFO;
     // -------------------------------------------------
     // Address and control signals (from master)
     // -------------------------------------------------
     logic [ADDR_WIDTH-1:0]         HADDR;           // Master: system bus address
-    logic [1:0]                    HTRANS;          // Master: transfer type (IDLE, BUSY, NONSEQ, SEQ)
+    // logic [1:0]                    HTRANS;          // Master: transfer type (IDLE, BUSY, NONSEQ, SEQ)
+    // htrans_t                       HTRANS;
+
     logic                          HWRITE;          // Master: HIGH = write, LOW = read
-    logic [2:0]                    HSIZE;           // Master: transfer size (byte, halfword, word)
-    logic [2:0]                    HBURST;          // Master: burst type (SINGLE, INCR, WRAP)
+    // logic [2:0]                    HSIZE;           // Master: transfer size (byte, halfword, word)
+    // hsize_t                        HSIZE;
+    // logic [2:0]                    HBURST;          // Master: burst type (SINGLE, INCR, WRAP)
+    // hburst_t                       HBURST;
+
     logic [3:0]                    HPROT;           // Master: protection control
+
+
+
+
 
     // -------------------------------------------------
     // Data signals
@@ -36,7 +47,15 @@ interface ahb_if;
     logic                          HSEL_SRAM;       // Decoder: select SRAM_slave
     logic                          HSEL_DEFAULT;    // Decoder: select DEFAULT_slave
     logic                          HREADY;          // Slave : transfer done / wait-state control
-    logic [1:0]                    HRESP;           // Slave : response (OKAY, ERROR, RETRY, SPLIT)
+    // logic [1:0]                    HRESP;           // Slave : response (OKAY, ERROR, RETRY, SPLIT)
+    // HRESP_t                        HRESP;
+
+
+  // Enum-typed bus signals from the package (plain names usable)
+  htrans_t HTRANS;   // IDLE/BUSY/NONSEQ/SEQ
+  hsize_t  HSIZE;    // BYTE/HALF_WORD/WORD
+  hburst_t HBURST;   // SINGLE/INCR/WRAP4/...
+  hresp_t  HRESP;    // OKAY/ERROR/RETRY/SPLIT
 
     // -------------------------------------------------
     // Arbitration signals
