@@ -18,15 +18,20 @@ class ahb_wrap_burst_seq extends ahb_base_sequence;
     // -------------------------------------------------
     // STEP-1: Randomize burst intent ONCE
     // -------------------------------------------------
+    hburst_t wrap_list[] = '{WRAP4, WRAP8, WRAP16};
+
+    foreach (wrap_list[w]) begin
+
+    // 1. Randomize burst intent ONCE
     burst_cfg = ahb_seq_item::type_id::create("burst_cfg");
     start_item(burst_cfg);
 
     if (!burst_cfg.randomize() with {
-          HBURST inside {WRAP4, WRAP8, WRAP16};
-          HSIZE  inside {BYTE, HALF_WORD, WORD};
-          HADDR  inside {[32'h0000_0000 : 32'h0000_0FFF]};
+            HBURST == wrap_list[w];
+            HSIZE  inside {BYTE, HALF_WORD, WORD};
+            HADDR  inside {[32'h0000_0000 : 32'h0000_0FFF]};
         })
-      `uvm_fatal("WRAP_SEQ", "Burst intent randomization failed");
+        `uvm_fatal("WRAP_SEQ", "Burst intent randomization failed");
 
     finish_item(burst_cfg);
 
