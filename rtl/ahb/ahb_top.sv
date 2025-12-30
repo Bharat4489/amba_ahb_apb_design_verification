@@ -5,10 +5,23 @@ module ahb_top (
     // Local signals from slaves
     logic [DATA_WIDTH-1:0] hrdata_sram;
     logic [DATA_WIDTH-1:0] hrdata_default;
+    logic [DATA_WIDTH-1:0] hrdata_split;
     logic                  hready_sram;
     logic                  hready_default;
+    logic                  hready_split;
     logic [1:0]            hresp_sram;
     logic [1:0]            hresp_default;
+    logic [1:0]            hresp_split;
+    logic [NO_OF_MASTERS-1:0] hsplit_sram;
+    logic [NO_OF_MASTERS-1:0] hsplit_default;
+    logic [NO_OF_MASTERS-1:0] hsplit_split;
+
+
+
+    //arbiter
+    ahb_arbiter u_arbiter (
+        .arbiter_if(real_if.arbiter_mp)
+        );
 
     // Decoder
     ahb_decoder u_decoder (
@@ -17,20 +30,30 @@ module ahb_top (
 
     // Default slave
     ahb_default_slave u_default_slave (
-        .slave_if     (real_if.slave_mp),
+        .default_if     (real_if.slave_mp),
         .hrdata_default   (hrdata_default),
         .hready_default   (hready_default),
-        .hresp_default    (hresp_default)
+        .hresp_default    (hresp_default),
+        .hsplit_default   (hsplit_default)
     );
 
     // SRAM slave
     ahb_sram_slave u_sram_slave (
-        .slave_if     (real_if.slave_mp),
+        .sram_if     (real_if.slave_mp),
         .hrdata_sram   (hrdata_sram),
         .hready_sram   (hready_sram),
-        .hresp_sram    (hresp_sram)
+        .hresp_sram    (hresp_sram),
+        .hsplit_sram   (hsplit_sram)
     );
 
+    ahb_split_slave u_split_slave(
+        .split_if   (real_if.slave_mp),
+        .hrdata_split (hrdata_split),
+        .hready_split(hready_split),
+        .hresp_split (hresp_split),
+        .hsplit_split(hsplit_split)
+
+    );
     // -----------------------------
     // RESPONSE MUX (single driver)
     // -----------------------------
@@ -43,11 +66,13 @@ module ahb_top (
             real_if.HRDATA = hrdata_sram;
             real_if.HREADY = hready_sram;
             real_if.HRESP  = hresp_sram;
+            real_if.HSPLIT = hsplit_sram;
         end
         else if (real_if.HSEL_DEFAULT) begin
             real_if.HRDATA = hrdata_default;
             real_if.HREADY = hready_default;
             real_if.HRESP  = hresp_default;
+            real_if.HSPLIT = hsplit_default;
         end
     end
 

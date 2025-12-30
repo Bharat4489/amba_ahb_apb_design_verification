@@ -2,9 +2,10 @@ import ahb_params_pkg::*;
 
 module ahb_sram_slave (
     ahb_if.slave_mp sram_if,
-    output logic [DATA_WIDTH-1:0] hrdata_sram,
-    output logic hready_sram,           //transfer done / wait-state control
-    output logic [1:0] hresp_sram       //response (OKAY, ERROR, RETRY, SPLIT)
+    output logic [DATA_WIDTH-1:0]   hrdata_sram,
+    output logic                    hready_sram,           //transfer done / wait-state control
+    output hresp_t                  hresp_sram,       //response (OKAY, ERROR, RETRY, SPLIT)
+    output logic [NO_OF_MASTERS-1:0]      hsplit_sram
 );
 
     // ------------------------------------------------------------
@@ -18,10 +19,15 @@ module ahb_sram_slave (
     int unsigned word_addr;
 
     // ------------------------------------------------------------
-    // Always-ready, fast SRAM slave
+    // Always-ready, fast SRAM-SLAVE
     // ------------------------------------------------------------
     assign hready_sram = 1'b1;     // No wait states
-    assign hresp_sram  = 2'b00;    // OKAY response always
+    assign hresp_sram  = OKAY;    // OKAY response always
+
+    // ------------------------------------------------------------
+    // SRAM-SLAVE : SPLIT feature unsupported
+    // ------------------------------------------------------------
+    assign hsplit_sram = 'b0;     // No wait states
 
     // ------------------------------------------------------------
     // Byte enable decode (combinational)

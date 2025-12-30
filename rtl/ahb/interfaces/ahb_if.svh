@@ -19,11 +19,11 @@ interface ahb_if;
     // -------------------------------------------------
     // Address and control signals (from master)
     // -------------------------------------------------
-    logic [ADDR_WIDTH-1:0]         HADDR;           // Master: system bus address
+    logic  [ADDR_WIDTH-1:0]         HADDR;           // Master: system bus address
     // logic [1:0]                    HTRANS;          // Master: transfer type (IDLE, BUSY, NONSEQ, SEQ)
     // htrans_t                       HTRANS;
 
-    logic                          HWRITE;          // Master: HIGH = write, LOW = read
+    logic                           HWRITE;          // Master: HIGH = write, LOW = read
     // logic [2:0]                    HSIZE;           // Master: transfer size (byte, halfword, word)
     // hsize_t                        HSIZE;
     // logic [2:0]                    HBURST;          // Master: burst type (SINGLE, INCR, WRAP)
@@ -46,27 +46,28 @@ interface ahb_if;
     // -------------------------------------------------
     logic                          HSEL_SRAM;       // Decoder: select SRAM_slave
     logic                          HSEL_DEFAULT;    // Decoder: select DEFAULT_slave
+    logic                          HSEL_SPLIT;      // Decoder: select split_slave
     logic                          HREADY;          // Slave : transfer done / wait-state control
     // logic [1:0]                    HRESP;           // Slave : response (OKAY, ERROR, RETRY, SPLIT)
     // HRESP_t                        HRESP;
 
 
   // Enum-typed bus signals from the package (plain names usable)
-  htrans_t HTRANS;   // IDLE/BUSY/NONSEQ/SEQ
-  hsize_t  HSIZE;    // BYTE/HALF_WORD/WORD
-  hburst_t HBURST;   // SINGLE/INCR/WRAP4/...
-  hresp_t  HRESP;    // OKAY/ERROR/RETRY/SPLIT
-
+  htrans_t  HTRANS;   // IDLE/BUSY/NONSEQ/SEQ
+  hsize_t   HSIZE;    // BYTE/HALF_WORD/WORD
+  hburst_t  HBURST;   // SINGLE/INCR/WRAP4/...
+  hresp_t   HRESP;    // OKAY/ERROR/RETRY/SPLIT
+  hmaster_t HMASTER;
     // -------------------------------------------------
     // Arbitration signals
     // -------------------------------------------------
     logic [NO_OF_MASTERS-1:0]      HBUSREQ;         // Master: bus request
     logic [NO_OF_MASTERS-1:0]      HLOCK;           // Master: locked transfer request
     logic [NO_OF_MASTERS-1:0]      HGRANT;          // Arbiter: bus grant
-    logic [$clog2(NO_OF_MASTERS)-1:0] HMASTER;      // Arbiter: current master number
+    // logic [$clog2(NO_OF_MASTERS)-1:0] HMASTER;      // Arbiter: current master number
     logic                          HMASTLOCK;       // Arbiter: locked sequence indication
     logic [NO_OF_MASTERS-1:0]      HSPLIT;          // Slave : split completion per master
-
+    master_id_t                    master_id;
     // -------------------------------------------------
     // modport- master_mp, slave_mp, arbiter_mp, monitor_mp, 
     // -------------------------------------------------
@@ -86,7 +87,8 @@ interface ahb_if;
                         HPROT,
                         HWDATA,
                         HBUSREQ,
-                        HLOCK;
+                        HLOCK,
+                        master_id;
 
                 // inputs (sampled by master)
                 input   HRESETn,
@@ -142,6 +144,7 @@ interface ahb_if;
                 HMASTLOCK,
                 HSEL_DEFAULT,
                 HSEL_SRAM,
+                HSEL_SPLIT
 
         // output  HRDATA,      using ahb_top to connect local output of slaves thus avoiding multi drives
         //         HREADY,
@@ -156,6 +159,8 @@ interface ahb_if;
                 HBUSREQ,
                 HLOCK,
                 HSPLIT,
+                HREADY,
+                HRESP,
 
         output  HGRANT,
                 HMASTER,
@@ -169,7 +174,8 @@ interface ahb_if;
                 HTRANS,
 
         output  HSEL_DEFAULT,
-                HSEL_SRAM
+                HSEL_SRAM,
+                HSEL_SPLIT
                 
         );
 

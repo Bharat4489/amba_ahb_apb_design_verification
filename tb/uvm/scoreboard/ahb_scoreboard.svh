@@ -43,3 +43,7 @@ function void ahb_scoreboard::write(ahb_seq_item txn);
     //`uvm_info("AHB_SCOREBOARD", "printing scoreboard txn, must be exactly same as ,monitor", UVM_MEDIUM)
     //`uvm_info("AHB_SCOREBOARD", txn.sprint(), UVM_MEDIUM)
 endfunction
+
+
+
+

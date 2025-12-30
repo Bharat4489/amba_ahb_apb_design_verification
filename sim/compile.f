@@ -4,6 +4,7 @@ rtl/ahb/infra/ahb_arbiter.sv
 rtl/ahb/infra/ahb_decoder.sv
 rtl/ahb/slaves/ahb_default_slave.sv
 rtl/ahb/slaves/ahb_sram_slave.sv
+rtl/ahb/slaves/ahb_split_slave.sv
 rtl/ahb/ahb_top.sv
 tb/uvm/ahb_pkg.svh
 tb/top/tb_top.sv

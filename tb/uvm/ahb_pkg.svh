@@ -5,12 +5,20 @@ package ahb_pkg;
     import uvm_pkg::*; 
     import ahb_params_pkg::*;
 
+    `include "tb/uvm/configurations/ahb_agent_cfg.svh"
     `include "tb/uvm/sequence_item/ahb_base_seq_item.svh"
     `include "tb/uvm/sequence_item/ahb_seq_item.svh"
     `include "tb/uvm/drivers/ahb_master_driver.svh"
-    `include "tb/uvm/sequences/ahb_base_sequence.svh"
-    `include "tb/uvm/sequences/ahb_direct_sequences/multiple_write_read_seq.svh"
     `include "tb/uvm/sequencer/ahb_master_sequencer.svh"
+    `include "tb/uvm/sequencer/ahb_master_virtual_sequencer.svh"
+    //sequences
+    `include "tb/uvm/sequences/ahb_base_sequence.svh"
+    // `include "tb/uvm/sequences/my_vseq.svh"
+    `include "tb/uvm/sequences/ahb_direct_sequences/multiple_write_read_seq.svh"
+    `include "tb/uvm/sequences/ahb_direct_sequences/ahb_basic_burst_seq.svh"
+    `include "tb/uvm/sequences/ahb_direct_sequences/ahb_incr_burst_seq.svh"
+    `include "tb/uvm/sequences/ahb_direct_sequences/ahb_wrap_burst_seq.svh"
+
     `include "tb/uvm/monitors/ahb_master_monitor.svh"
     `include "tb/uvm/agents/ahb_master_agent.svh"
     `include "tb/uvm/scoreboard/ahb_scoreboard.svh"
@@ -28,3 +36,4 @@ package ahb_pkg;
       ->if1.pattern_update;
     endtask: set_pattern_name
 endpackage
+

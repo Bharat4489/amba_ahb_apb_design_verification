@@ -8,7 +8,7 @@ endclass //ahb_basic_burst_seq
 
     // -------------------------
     // NEW
-function ahb_basic_burst_seq::new(string name = "ahb_basic_burst_seq")
+function ahb_basic_burst_seq::new(string name = "ahb_basic_burst_seq");
     super.new(name);
 endfunction
 
@@ -26,11 +26,16 @@ task automatic ahb_basic_burst_seq::body();
 
       start_item(req);
       req.pattern_id = PATTERN_INCR;
+      `uvm_info("ahb_basic_burst_seq", $sformatf("pattern_id = %s", req.pattern_id.name()), UVM_MEDIUM);
+      req.HPROT  = 4'b0001;
       req.HADDR  = offset + i*4;
+      req.HTRANS = (i==0)?NONSEQ:SEQ;
       req.HBURST = INCR;
       req.HSIZE  = WORD;
       req.HWRITE = 1'b1;
       req.HWDATA = 32'(200*i);
+      req.HLOCK  = 0;
+
       finish_item(req);
     end
 
@@ -42,10 +47,15 @@ task automatic ahb_basic_burst_seq::body();
 
       start_item(req);
       req.pattern_id = PATTERN_INCR;
+      `uvm_info("ahb_basic_burst_seq", $sformatf("pattern_id = %s", req.pattern_id.name()), UVM_MEDIUM);
+      req.HPROT  = 4'b0001;
       req.HADDR  = offset + i*4;
       req.HBURST = INCR;
+      req.HTRANS = (i==0)?NONSEQ:SEQ;
       req.HSIZE  = WORD;
       req.HWRITE = 1'b0;
+      req.HLOCK  = 0;
+
       finish_item(req);
     end
 endtask

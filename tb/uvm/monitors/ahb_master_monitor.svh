@@ -4,10 +4,13 @@ class ahb_master_monitor extends uvm_monitor;
     // Virtual interface handle for observing AHB signals
     // Monitor uses a read-only modport (no driving)
     virtual ahb_if.monitor_mp dut_vif;
+    virtual ahb_if            full_vif;
 
     // Analysis port to send observed transactions to scoreboard/coverage
     // It is a UVM object that implements a TLM port used to broadcast transactions.
     uvm_analysis_port #(ahb_seq_item) ap;
+
+    int unsigned txn_cnt;
 
     function new(string name = "ahb_master_monitor", uvm_component parent);
         super.new(name, parent);
@@ -23,12 +26,16 @@ endclass : ahb_master_monitor
   // ------------------------------------------------------------------
 function void ahb_master_monitor::build_phase(uvm_phase phase);
     super.build_phase(phase);
+      `uvm_info("MONITOR", "Entered build_phase", UVM_MEDIUM)
     ap = new("ap", this);                   
     /*
     TLM ports not part of the UVM component hierarchy and does not participate in phases, 
     so TLM ports created as a regular object(but created in build phase to keep UVM construction clean and predictable
     */
     if (!uvm_config_db#(virtual ahb_if.monitor_mp)::get(this, "", "ahb_vif", dut_vif)) begin
+        `uvm_fatal("MONITOR:NOVIF","unable to get VIF from uvm_config_db")
+    end
+    if (!uvm_config_db#(virtual ahb_if)::get(this, "", "ahb_vif", full_vif)) begin
         `uvm_fatal("MONITOR:NOVIF","unable to get VIF from uvm_config_db")
     end
 endfunction //ahb_master_monitor::build_phase
@@ -45,6 +52,7 @@ task ahb_master_monitor::run_phase(uvm_phase phase);
   if (dut_vif == null)
     `uvm_fatal("MONITOR:NOVIF", "monitor VIF is null; check config_db set/get keys")
 
+  txn_cnt = 0;
   // Do nothing while reset is asserted
   wait (dut_vif.monitor_cb.HRESETn);
 
@@ -66,14 +74,15 @@ task ahb_master_monitor::run_phase(uvm_phase phase);
       ahb_seq_item txn = ahb_seq_item::type_id::create("txn");
 
       // Capture address/control (address phase)
-      txn.HTRANS = dut_vif.monitor_cb.HTRANS;
-      txn.HWRITE = dut_vif.monitor_cb.HWRITE;
-      txn.HADDR  = dut_vif.monitor_cb.HADDR;
-      txn.HSIZE  = dut_vif.monitor_cb.HSIZE;
-      txn.HBURST = dut_vif.monitor_cb.HBURST;
-      txn.HPROT  = dut_vif.monitor_cb.HPROT;
-      txn.HSEL_DEFAULT = dut_vif.monitor_cb.HSEL_DEFAULT;
-      txn.HSEL_SRAM    = dut_vif.monitor_cb.HSEL_SRAM;
+      txn.HTRANS        = dut_vif.monitor_cb.HTRANS;
+      txn.HWRITE        = dut_vif.monitor_cb.HWRITE;
+      txn.HADDR         = dut_vif.monitor_cb.HADDR;
+      txn.HSIZE         = dut_vif.monitor_cb.HSIZE;
+      txn.HBURST        = dut_vif.monitor_cb.HBURST;
+      txn.HGRANT        = dut_vif.monitor_cb.HGRANT;
+      txn.HPROT         = dut_vif.monitor_cb.HPROT;
+      txn.HSEL_DEFAULT  = dut_vif.monitor_cb.HSEL_DEFAULT;
+      txn.HSEL_SRAM     = dut_vif.monitor_cb.HSEL_SRAM;
 
       // ----------------------------
       // DATA PHASE: wait until beat completes (handle wait-states)
@@ -98,22 +107,25 @@ task ahb_master_monitor::run_phase(uvm_phase phase);
         txn.HREADY = dut_vif.monitor_cb.HREADY; // will be 1 here
 
         `uvm_info("MONITOR",
-          $sformatf("HADDR=0x%08h HSIZE=%0d HTRANS=%0b HWRITE=%0b HWDATA=0x%08h HRDATA=0x%08h HREADY=%0b HSEL_DEFAULT=%0b HSEL_SRAM=%0b HRESP=%0d",
+          $sformatf("HADDR=0x%08h HSIZE=%0d HTRANS=%0b HWRITE=%0b HWDATA=0x%08h HRDATA=0x%08h HREADY=%0b HSEL_DEFAULT=%0b HSEL_SRAM=%0b HRESP=%0d HGRANT[0]=%0b HGRANT[1]=%0b",
                     txn.HADDR, txn.HSIZE, txn.HTRANS, txn.HWRITE,
                     txn.HWRITE ? txn.HWDATA : '0,
                     txn.HWRITE ? '0 : txn.HRDATA,
                     txn.HREADY,
                     txn.HSEL_DEFAULT,
                     txn.HSEL_SRAM,
-                    txn.HRESP),
+                    txn.HRESP,
+                    txn.HGRANT[0],
+                    txn.HGRANT[1]),
           UVM_MEDIUM)
 
         // ----------------------------
         // PUBLISH: only after data-phase completion
         // ----------------------------
-        txn_cnt++;
+        `uvm_info("MONITOR", "Publishing after data phase", UVM_MEDIUM)
 
-      dut_vif.AHB_TXN_INFO = $sformatf(
+      txn_cnt++;
+      full_vif.AHB_TXN_INFO = $sformatf(
         "[%0d] %s %s %s %s %s A=0x%08h D=0x%08h",
         txn_cnt,
         txn.seq_name,
@@ -152,4 +164,3 @@ task ahb_master_monitor::run_phase(uvm_phase phase);
     // else: IDLE/BUSY or not yet accepted → ignore
   end // forever
 endtask
-

@@ -14,13 +14,17 @@ class ahb_base_seq_item extends uvm_sequence_item;          //adding seq items
     rand logic [2:0]                HBURST;
     rand logic [DATA_WIDTH-1:0]     HWDATA;
     rand logic [ADDR_WIDTH-1:0]     HADDR;
-    rand logic                      HREADY;
+    rand logic HREADY;
          logic [3:0]                HPROT;
          logic [NO_OF_MASTERS-1:0]  HBUSREQ;
          logic [DATA_WIDTH-1:0]     HRDATA;
          logic                      HSEL_DEFAULT;
          logic                      HSEL_SRAM;
          logic [1:0]                HRESP;
+         logic [NO_OF_MASTERS-1:0]  HGRANT;
+         logic [NO_OF_MASTERS-1:0]  HLOCK;
+         master_id_t                master_id;
+         string                     seq_name;
 
     extern function void do_print(uvm_printer printer);     //how does do_print works
 
@@ -37,4 +41,5 @@ function void ahb_base_seq_item::do_print(uvm_printer printer);
     printer.print_field("HWDATA", this.HWDATA, 32, UVM_HEX);
     printer.print_field("HREADY", this.HREADY, 1,  UVM_DEC);
     printer.print_field("HRDATA", this.HRDATA, 32, UVM_HEX);
+    printer.print_field("HGRANT", this.HGRANT, 2, UVM_BIN);
 endfunction

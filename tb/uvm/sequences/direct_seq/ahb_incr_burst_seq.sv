@@ -18,55 +18,84 @@ endfunction
     // BODY
 task automatic ahb_incr_burst_seq::body();
     ahb_seq_item req;   //seq_item handle
+    ahb_seq_item burst_cfg;
     int offset = 32'h100;
     logic [2:0] hsize_local;
     int beat_size;
+    int burst_len;
 
-    hsize_local = WORD;     //UPDATE HSIZE here
-    case (hsize_local)
-        BYTE      : beat_size = 1;
-        HALF_WORD : beat_size = 2;
-        WORD      : beat_size = 4;
-        default   : beat_size = 4;
-    endcase
 
-    for ( int hburst= 4;hburst<17;hburst=hburst*2 ) begin      //HBURST=INCR4, INCR8, INCR16
-        offset = offset+32'h1000;
+    hburst_t wrap_list[] = '{INCR4, INCR8, INCR16};
+
+    foreach (wrap_list[w]) begin
+
+      // 1. Randomize burst intent ONCE
+      burst_cfg = ahb_seq_item::type_id::create("burst_cfg");
+      start_item(burst_cfg);
+
+      if (!burst_cfg.randomize() with {
+              HBURST == wrap_list[w];
+              HSIZE  inside {BYTE, HALF_WORD, WORD};
+              HADDR  inside {[32'h0000_0000 : 32'h0000_0FFF]};
+          })
+          `uvm_fatal("WRAP_SEQ", "Burst intent randomization failed");
+
+          burst_len = (burst_cfg.HBURST == WRAP4)  ? 4  :
+                      (burst_cfg.HBURST == WRAP8)  ? 8  : 16;
+
+          beat_size = (burst_cfg.HSIZE == BYTE)      ? 1 :
+                      (burst_cfg.HSIZE == HALF_WORD) ? 2 : 4;
+
+      finish_item(burst_cfg);
+
         // -------------------------
         // INCR4/8/16 burst WRITE
         // -------------------------
-        for (int i = 0; i<hburst; i++) begin
-            req = ahb_seq_item::type_id::create($sformatf("wr_req_%0d_%0d",i, hburst));
+        for (int beat = 0; beat < burst_len; beat++) begin
+            req = ahb_seq_item::type_id::create($sformatf("wrap_wr_%0d", beat));
             start_item(req);
-            req.HADDR  = offset + i*beat_size;
-            req.HSIZE  = hsize_local;
+
+            req.HPROT  = 4'b0001;
+            req.HBURST = burst_cfg.HBURST;
+            req.HSIZE  = burst_cfg.HSIZE;
+            req.HTRANS = (beat == 0) ? NONSEQ : SEQ;
             req.HWRITE = 1'b1;
-            req.HWDATA = 32'(200*i);
-            case (hburst)
-                4: begin req.pattern_id = PATTERN_INCR4;              req.HBURST = INCR4;     end
-                8: begin req.pattern_id = PATTERN_INCR8;              req.HBURST = INCR8;     end
-                16:begin req.pattern_id = PATTERN_INCR16;             req.HBURST = INCR16;    end
-                default: begin req.pattern_id = PATTERN_UNDEFINED;    req.HBURST = INCR16;    end
-            endcase     
+            req.HADDR  = burst_cfg.HADDR;
+            req.HWDATA = burst_cfg.HWDATA;
+            req.HLOCK  = 0;
+
+
+            case (burst_cfg.HBURST)
+              WRAP4  : req.pattern_id = PATTERN_WRAP4;
+              WRAP8  : req.pattern_id = PATTERN_WRAP8;
+              WRAP16 : req.pattern_id = PATTERN_WRAP16;
+            endcase
+
             finish_item(req);
         end
-
         // -------------------------
         // INCR4/8/16 burst READ
         // -------------------------
-        for (int i = 0; i<hburst; i++) begin
-            req = ahb_seq_item::type_id::create($sformatf("rd_req_%0d_%0d",i, hburst));
+        for (int beat = 0; beat < burst_len; beat++) begin
+            req = ahb_seq_item::type_id::create($sformatf("wrap_rd_%0d", beat));
             start_item(req);
-            req.HADDR  = offset + i*beat_size;
-            req.HSIZE  = hsize_local;
+
+            req.HPROT  = 4'b0001;
+            req.HBURST = burst_cfg.HBURST;
+            req.HSIZE  = burst_cfg.HSIZE;
+            req.HTRANS = (beat == 0) ? NONSEQ : SEQ;
             req.HWRITE = 1'b0;
-            case (hburst)
-                4: begin req.pattern_id = PATTERN_INCR4;              req.HBURST = INCR4;     end
-                8: begin req.pattern_id = PATTERN_INCR8;              req.HBURST = INCR8;     end
-                16:begin req.pattern_id = PATTERN_INCR16;             req.HBURST = INCR16;    end
-                default: begin req.pattern_id = PATTERN_UNDEFINED;    req.HBURST = INCR16;    end
-            endcase 
-            finish_item(req);    
-        end 
+            req.HADDR  = burst_cfg.HBURST;
+            req.HLOCK  = 0;
+
+
+            case (burst_cfg.HBURST)
+              WRAP4  : req.pattern_id = PATTERN_WRAP4;
+              WRAP8  : req.pattern_id = PATTERN_WRAP8;
+              WRAP16 : req.pattern_id = PATTERN_WRAP16;
+            endcase
+
+            finish_item(req);
+        end
     end
 endtask

@@ -69,4 +69,14 @@ package ahb_params_pkg;
         SPLIT  = 2'b11  // Split response
     } hresp_t;
 
+    typedef enum logic [NO_OF_MASTERS-1:0]{
+        CPU_MASTER  =   2'b00,
+        DMA_MASTER  =   2'b01
+    } master_id_t;
+
+    typedef enum logic [$clog2(NO_OF_MASTERS)-1:0]{
+        CPU  =   0,
+        DMA  =   1
+    } hmaster_t;
+
 endpackage : ahb_params_pkg
