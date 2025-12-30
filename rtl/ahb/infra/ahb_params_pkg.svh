@@ -74,6 +74,12 @@ package ahb_params_pkg;
         DMA_MASTER  =   2'b01
     } master_id_t;
 
+    typedef enum logic [NO_OF_SLAVES-1:0]{
+        DEFAULT_SLAVE,
+        SRAM_SLAVE,
+        SPLIT_SLAVE
+    } slave_id_t;
+
     typedef enum logic [$clog2(NO_OF_MASTERS)-1:0]{
         CPU  =   0,
         DMA  =   1

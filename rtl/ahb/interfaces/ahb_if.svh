@@ -68,6 +68,7 @@ interface ahb_if;
     logic                          HMASTLOCK;       // Arbiter: locked sequence indication
     logic [NO_OF_MASTERS-1:0]      HSPLIT;          // Slave : split completion per master
     master_id_t                    master_id;
+    slave_id_t                     slave_id;
     // -------------------------------------------------
     // modport- master_mp, slave_mp, arbiter_mp, monitor_mp, 
     // -------------------------------------------------
@@ -175,8 +176,10 @@ interface ahb_if;
 
         output  HSEL_DEFAULT,
                 HSEL_SRAM,
-                HSEL_SPLIT
+                HSEL_SPLIT,
+                slave_id
                 
         );
 
 endinterface : ahb_if
+
